@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!-- ============================================================================
+  간호과정 ADPIE 워크플로우 + NANDA-NIC-NOC(NNN) 연계 훈련 도구
+  - 단일 HTML 파일 / 외부 API·CDN 의존 없음(Google Fonts만 사용)
+  - 학생 작업은 localStorage 저장
+  - 제작: 제프리 교수 · 청암대학교 간호학과 (교육용)
+
+  [분류체계 출처 / 저작권 고지]
+  - NANDA-I : NANDA International (간호진단 표준 분류)
+  - NIC     : Nursing Interventions Classification, by Elsevier
+  - NOC     : Nursing Outcomes Classification, by Elsevier
+  본 도구는 전체 분류표를 내장하지 않으며, 탑재된 3개 가상 시나리오 학습에
+  필요한 '핵심 항목만' 교육 예시로 선별하여 사용합니다.
+============================================================================ -->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>간호과정 ADPIE · NNN 연계 훈련 도구</title>
+
+<!-- 폰트: 제목 Noto Serif KR / 본문 Noto Sans KR / 수치·코드 JetBrains Mono -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ===========================================================================
+   1. 디자인 시스템 (Care Green 팔레트) — CSS 변수
+   =========================================================================== */
+:root{
+  /* Care Green primary */
+  --green-900:#064e3b;
+  --green-800:#065F46;   /* primary */
+  --green-700:#047857;
+  --green-600:#059669;
+  --green-300:#6ee7b7;
+  --green-100:#d1fae5;
+  --green-050:#ecfdf5;
+
+  /* 단계별 보조 강조색 (A→D→P→I→E 일관 사용) */
+  --step-a:#0e7490;  /* 사정  - teal   */
+  --step-d:#7c3aed;  /* 진단  - violet */
+  --step-p:#0369a1;  /* 계획  - blue   */
+  --step-i:#b45309;  /* 수행  - amber  */
+  --step-e:#be123c;  /* 평가  - rose   */
+
+  --ink:#0f172a;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --bg:#f6f8f7;
+  --card:#ffffff;
+  --good:#15803d;
+  --warn:#b45309;
+  --bad:#be123c;
+
+  --radius:14px;
+  --shadow:0 1px 3px rgba(6,95,70,.08), 0 8px 24px rgba(6,95,70,.06);
+  --serif:'Noto Serif KR',serif;
+  --sans:'Noto Sans KR',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:var(--bg);
+  line-height:1.6;
+  padding-bottom:64px; /* 고정 푸터 공간 */
+}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:700;line-height:1.3;}
+.mono{font-family:var(--mono);}
+button{font-family:var(--sans);cursor:pointer;}
+small{color:var(--muted);}
+
+/* ===========================================================================
+   2. 상단 헤더 + 진행 표시줄(stepper)
+   =========================================================================== */
+header.top{
+  background:linear-gradient(135deg,var(--green-800),var(--green-900));
+  color:#fff;padding:18px 24px 14px;
+}
+header.top .wrap{max-width:1180px;margin:0 auto;}
+header.top h1{margin:0;color:#fff;font-size:22px;letter-spacing:-.3px;}
+header.top p.sub{margin:4px 0 0;color:var(--green-100);font-size:13px;}
+
+.container{max-width:1180px;margin:0 auto;padding:0 24px;}
+
+/* stepper */
+.stepper{
+  display:flex;align-items:stretch;gap:8px;
+  max-width:1180px;margin:16px auto 0;padding:0 24px;
+  flex-wrap:wrap;
+}
+.step-btn{
+  flex:1 1 0;min-width:150px;border:none;border-radius:12px;
+  background:#0c5a44;color:#bdf0dc;padding:10px 12px;text-align:left;
+  display:flex;gap:10px;align-items:center;transition:.15s;
+  border:1px solid transparent;
+}
+.step-btn:hover{background:#0e6650;}
+.step-btn .num{
+  width:30px;height:30px;border-radius:50%;flex:0 0 30px;
+  display:grid;place-items:center;font-family:var(--mono);font-weight:600;
+  background:rgba(255,255,255,.14);color:#fff;font-size:14px;
+}
+.step-btn .lab{display:flex;flex-direction:column;line-height:1.2;}
+.step-btn .lab b{font-family:var(--serif);font-size:15px;color:#fff;}
+.step-btn .lab span{font-size:11px;color:#9fe3c8;}
+.step-btn.active{background:#fff;color:var(--green-900);box-shadow:var(--shadow);}
+.step-btn.active .num{background:var(--accent,var(--green-700));color:#fff;}
+.step-btn.active .lab b{color:var(--green-900);}
+.step-btn.active .lab span{color:var(--muted);}
+.step-btn.done .num::after{content:"✓";}
+.step-btn.done .num{font-size:0;background:var(--green-600);color:#fff;}
+.step-btn.done .num::after{font-size:15px;}
+
+/* ===========================================================================
+   3. 공통 카드 / 패널
+   =========================================================================== */
+.panel{display:none;animation:fade .25s ease;}
+.panel.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+.section-head{display:flex;align-items:center;gap:12px;margin:26px 0 6px;}
+.section-head .badge{
+  font-family:var(--mono);font-weight:600;font-size:13px;color:#fff;
+  background:var(--accent,var(--green-700));padding:4px 10px;border-radius:8px;
+}
+.section-head h2{margin:0;font-size:21px;}
+.section-desc{color:var(--muted);font-size:13.5px;margin:0 0 16px;}
+
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;box-shadow:var(--shadow);margin-bottom:16px;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+label.fld{display:block;font-size:13px;font-weight:700;margin:12px 0 4px;color:var(--ink);}
+input[type=text],input[type=number],select,textarea{
+  width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+  font-family:var(--sans);font-size:14px;background:#fff;color:var(--ink);
+}
+textarea{resize:vertical;min-height:64px;}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--green-300);border-color:var(--green-600);}
+.num-in{font-family:var(--mono);}
+
+.btn{
+  border:none;border-radius:10px;padding:11px 18px;font-weight:700;font-size:14px;
+  background:var(--green-800);color:#fff;transition:.15s;
+}
+.btn:hover{background:var(--green-700);}
+.btn.ghost{background:#fff;color:var(--green-800);border:1px solid var(--green-600);}
+.btn.ghost:hover{background:var(--green-050);}
+.btn.sm{padding:7px 12px;font-size:13px;}
+.btn.rose{background:var(--step-e);}
+.btn.rose:hover{filter:brightness(1.08);}
+.nav-row{display:flex;justify-content:space-between;gap:10px;margin:22px 0 10px;}
+
+/* ===========================================================================
+   4. 시나리오 선택
+   =========================================================================== */
+.scn-pick{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.scn-card{
+  flex:1 1 230px;border:2px solid var(--line);border-radius:12px;padding:14px;
+  background:#fff;text-align:left;transition:.15s;
+}
+.scn-card:hover{border-color:var(--green-300);}
+.scn-card.active{border-color:var(--green-700);background:var(--green-050);}
+.scn-card h4{margin:0 0 4px;font-size:16px;}
+.scn-card .tag{
+  display:inline-block;font-size:11px;font-family:var(--mono);
+  background:var(--green-100);color:var(--green-900);padding:2px 8px;border-radius:6px;margin-bottom:8px;
+}
+.scn-card p{margin:0;font-size:12.5px;color:var(--muted);}
+
+/* ===========================================================================
+   5. 사정(A) — 단서 카드 / S·O 분류
+   =========================================================================== */
+.cue{
+  display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;transition:.12s;
+}
+.cue:hover{border-color:var(--step-a);}
+.cue.picked{border-color:var(--step-a);background:#ecfeff;box-shadow:inset 3px 0 0 var(--step-a);}
+.cue input[type=checkbox]{margin-top:4px;width:18px;height:18px;accent-color:var(--step-a);flex:0 0 auto;}
+.cue .body{flex:1;}
+.cue .txt{font-size:14px;}
+.cue .val{font-family:var(--mono);font-weight:600;}
+.cue .so{
+  margin-top:6px;display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);
+}
+.cue .so select{width:auto;padding:3px 6px;font-size:12px;}
+.cue .flag{font-size:11px;font-family:var(--mono);color:var(--bad);margin-left:6px;}
+.sub-o-head{display:flex;gap:10px;font-size:12px;color:var(--muted);margin:4px 0 10px;}
+.pill{font-size:11px;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
+.pill.s{background:#e0f2fe;color:#075985;}
+.pill.o{background:#fef3c7;color:#92400e;}
+
+/* ===========================================================================
+   6. 피드백 박스 (정합성 안내)
+   =========================================================================== */
+.feedback{border-radius:10px;padding:12px 14px;font-size:13.5px;margin-top:12px;border:1px solid;}
+.feedback.good{background:#f0fdf4;border-color:#bbf7d0;color:#166534;}
+.feedback.warn{background:#fffbeb;border-color:#fde68a;color:#92400e;}
+.feedback.bad{background:#fff1f2;border-color:#fecdd3;color:#9f1239;}
+.feedback b{display:block;margin-bottom:4px;}
+.feedback ul{margin:6px 0 0;padding-left:18px;}
+
+/* PES 입력 3분할 */
+.pes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:860px){.pes{grid-template-columns:1fr;}}
+.pes .box{border:1px solid var(--line);border-radius:10px;padding:12px;background:#faf5ff;}
+.pes .box h4{margin:0 0 4px;font-size:14px;color:var(--step-d);}
+.pes .box small{font-size:11px;}
+
+/* ===========================================================================
+   7. NOC 척도 / 평가 막대
+   =========================================================================== */
+.scale-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:10px 0;}
+.scale-row .lab{flex:0 0 120px;font-size:13px;font-weight:700;}
+.likert{display:flex;gap:6px;}
+.likert button{
+  width:38px;height:38px;border-radius:8px;border:1px solid var(--line);background:#fff;
+  font-family:var(--mono);font-weight:600;color:var(--muted);
+}
+.likert button.sel{background:var(--step-p);color:#fff;border-color:var(--step-p);}
+.likert.eval button.sel{background:var(--step-e);border-color:var(--step-e);}
+
+.bars{display:flex;flex-direction:column;gap:14px;margin-top:8px;}
+.bar-wrap{}
+.bar-wrap .cap{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+.bar-track{background:#f1f5f9;border-radius:8px;height:26px;position:relative;overflow:hidden;}
+.bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:8px;color:#fff;font-family:var(--mono);font-size:12px;font-weight:600;transition:width .5s;}
+.bar-fill.before{background:#94a3b8;}
+.bar-fill.after{background:var(--green-600);}
+.bar-fill.target{background:transparent;border-right:3px dashed var(--step-e);position:absolute;top:0;height:100%;}
+
+.verdict{display:inline-block;font-family:var(--mono);font-weight:600;padding:6px 14px;border-radius:20px;font-size:14px;}
+.verdict.met{background:var(--green-100);color:var(--green-900);}
+.verdict.part{background:#fef3c7;color:#92400e;}
+.verdict.unmet{background:#ffe4e6;color:#9f1239;}
+
+/* ===========================================================================
+   8. NNN 연계 맵 (SVG)
+   =========================================================================== */
+.map-wrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:10px;box-shadow:var(--shadow);}
+svg .node-box{rx:10;}
+svg text{font-family:var(--sans);}
+svg .ntitle{font-family:var(--serif);font-weight:700;}
+
+/* ===========================================================================
+   9. 이력
+   =========================================================================== */
+.hist-item{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fff;}
+.hist-item h4{margin:0 0 4px;font-size:15px;}
+.hist-item .meta{font-size:12px;color:var(--muted);font-family:var(--mono);}
+.hist-item .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+
+/* ===========================================================================
+   10. 순환성 강조 배너
+   =========================================================================== */
+.cycle{
+  display:flex;align-items:center;gap:14px;background:var(--green-050);
+  border:1px dashed var(--green-600);border-radius:12px;padding:14px 16px;margin-top:14px;
+}
+.cycle .arrow{font-size:26px;color:var(--green-700);}
+
+/* ===========================================================================
+   11. 고정 푸터
+   =========================================================================== */
+footer.fixed{
+  position:fixed;bottom:0;left:0;right:0;background:var(--green-900);color:#bdf0dc;
+  font-size:12.5px;text-align:center;padding:9px 12px;z-index:50;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+footer.fixed b{color:#fff;font-family:var(--serif);}
+.src-note{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.5;border-top:1px solid var(--line);padding-top:12px;}
+.hidden{display:none!important;}
+.tagline{font-size:12px;color:var(--muted);}
+</style>
+</head>
+
+<body>
+
+<!-- =========================================================================
+     상단 헤더 + 5단계 stepper
+     ========================================================================= -->
+<header class="top">
+  <div class="wrap">
+    <h1>간호과정 ADPIE · NANDA-NIC-NOC 연계 훈련 도구</h1>
+    <p class="sub">사정→진단→계획→수행→평가의 임상추론과 NNN 연계를 단계별로 훈련합니다 · 청암대학교 간호학과</p>
+  </div>
+</header>
+
+<nav class="stepper" id="stepper">
+  <!-- 단계 버튼은 JS가 렌더링 -->
+</nav>
+
+<main class="container" id="main">
+
+  <!-- =======================================================================
+       단계 A : 사정(Assessment)
+       ======================================================================= -->
+  <section class="panel" id="panel-A" style="--accent:var(--step-a)">
+    <div class="section-head"><span class="badge">A</span><h2>사정 · Assessment</h2></div>
+    <p class="section-desc">가상 환자 시나리오를 선택하고, 제시된 자료 중 <b>유의미한 단서(cue)</b>를 골라 표시하세요.
+      각 자료를 <b>주관적(S)/객관적(O)</b>으로 분류하는 연습도 함께 합니다. (개인정보 없는 가상환자)</p>
+
+    <!-- 시나리오 선택 -->
+    <div class="scn-pick" id="scnPick"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3 style="margin-top:0;font-size:16px;">제시 자료 — 단서 선택 & S/O 분류</h3>
+        <div class="sub-o-head">
+          <span><span class="pill s">S</span> 주관적: 환자 진술</span>
+          <span><span class="pill o">O</span> 객관적: 측정·관찰</span>
+        </div>
+        <div id="cueList"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;font-size:16px;">선택한 단서 요약</h3>
+        <p class="tagline">진단 단계에서 이 단서들이 진단의 정의특성과 일치하는지 검증합니다.</p>
+        <div id="cueSummary" class="num"></div>
+        <div id="cueFeedback"></div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <span></span>
+      <button class="btn" onclick="go('D')">진단 단계로 →</button>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       단계 D : 진단(Diagnosis) — NANDA-I + PES
+       ======================================================================= -->
+  <section class="panel" id="panel-D" style="--accent:var(--step-d)">
+    <div class="section-head"><span class="badge">D</span><h2>진단 · Diagnosis</h2></div>
+    <p class="section-desc">선택한 단서를 근거로 <b>NANDA-I 간호진단</b>을 선택하고, <b>PES 형식</b>(문제·관련요인·증상징후)으로 진술을 구조화하세요.</p>
+
+    <div class="card">
+      <label class="fld">NANDA-I 간호진단 선택 <small>(시나리오 관련 후보 + 오답 후보 포함)</small></label>
+      <select id="dxSelect" onchange="onDxChange()"><option value="">— 진단을 선택하세요 —</option></select>
+      <div id="dxDefHint" class="tagline" style="margin-top:8px;"></div>
+      <div id="dxFeedback"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;font-size:16px;">PES 진단 진술 작성</h3>
+      <div class="pes">
+        <div class="box">
+          <h4>P — 문제(Problem)</h4>
+          <small>NANDA 진단명</small>
+          <textarea id="pesP" placeholder="예: 비효과적 기도청결"></textarea>
+        </div>
+        <div class="box">
+          <h4>E — 관련요인(Etiology)</h4>
+          <small>~와 관련된 (원인/관련요인)</small>
+          <textarea id="pesE" placeholder="예: 과다한 기관지 분비물, 비효과적 기침"></textarea>
+        </div>
+        <div class="box">
+          <h4>S — 증상·징후(Signs)</h4>
+          <small>~로 나타나는 (정의특성)</small>
+          <textarea id="pesS" placeholder="예: 수포음, SpO₂ 88%, 객담 배출 곤란"></textarea>
+        </div>
+      </div>
+      <p class="tagline" style="margin-top:10px;">진술 예시: <span class="mono">[P] ~와 관련된 [E], ~로 나타나는 [S]</span></p>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn ghost" onclick="go('A')">← 사정</button>
+      <button class="btn" onclick="go('P')">계획 단계로 →</button>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       단계 P : 계획(Planning) — NOC 결과·목표 척도
+       ======================================================================= -->
+  <section class="panel" id="panel-P" style="--accent:var(--step-p)">
+    <div class="section-head"><span class="badge">P</span><h2>계획 · Planning</h2></div>
+    <p class="section-desc">선택한 진단에 연계되는 <b>NOC 결과</b>를 고르고, 결과 지표의 <b>현재 척도</b>와 <b>목표 척도</b>(5점 Likert)를 설정합니다.
+      <b>측정 방법(언제·무엇으로)</b>도 명시하세요.</p>
+
+    <div class="card">
+      <label class="fld">NOC 결과 선택 <small>(진단 연계 후보)</small></label>
+      <select id="nocSelect" onchange="onNocChange()"><option value="">— NOC 결과를 선택하세요 —</option></select>
+      <div id="nocDefHint" class="tagline" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card" id="nocIndicatorCard" style="display:none;">
+      <h3 style="margin-top:0;font-size:16px;">결과 지표 · 목표 척도 설정 <small style="font-weight:400">(1=가장 나쁨 ↔ 5=가장 좋음)</small></h3>
+      <div id="nocIndicators"></div>
+      <label class="fld">측정 방법 — 언제 / 무엇으로 측정하나요?</label>
+      <input type="text" id="nocMeasure" placeholder="예: 매 8시간 SpO₂ 측정 및 폐 청진, 객담 양상 사정" />
+    </div>
+
+    <div class="nav-row">
+      <button class="btn ghost" onclick="go('D')">← 진단</button>
+      <button class="btn" onclick="go('I')">수행 단계로 →</button>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       단계 I : 수행(Implementation) — NIC 중재·간호활동
+       ======================================================================= -->
+  <section class="panel" id="panel-I" style="--accent:var(--step-i)">
+    <div class="section-head"><span class="badge">I</span><h2>수행 · Implementation</h2></div>
+    <p class="section-desc">진단·결과에 연계되는 <b>NIC 중재</b>를 선택하고, 구체적 <b>간호활동(activities)</b>을 1~3개 기술하세요.</p>
+
+    <div class="card">
+      <label class="fld">NIC 중재 선택 <small>(진단·결과 연계 후보, 복수 선택 가능)</small></label>
+      <div id="nicList"></div>
+      <div id="nicFeedback"></div>
+    </div>
+
+    <div class="card">
+      <label class="fld">구체적 간호활동 기술 (1~3개)</label>
+      <textarea id="nicActivities" placeholder="예) 1. 2시간마다 체위변경 및 기침·심호흡 격려  2. 가습 및 수분 섭취 권장  3. 처방에 따른 기관흡인 시행"></textarea>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn ghost" onclick="go('P')">← 계획</button>
+      <button class="btn" onclick="go('E')">평가 단계로 →</button>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       단계 E : 평가(Evaluation) — 재측정 · 전후 비교 · 순환
+       ======================================================================= -->
+  <section class="panel" id="panel-E" style="--accent:var(--step-e)">
+    <div class="section-head"><span class="badge">E</span><h2>평가 · Evaluation</h2></div>
+    <p class="section-desc">계획 단계의 NOC 목표 척도를 기준으로 <b>수행 후 재측정값</b>을 입력하면, 목표 달성도를 자동 판정하고 전·후를 비교합니다.</p>
+
+    <div class="card" id="evalCard">
+      <h3 style="margin-top:0;font-size:16px;">수행 후 재측정 (NOC 지표)</h3>
+      <div id="evalIndicators"></div>
+    </div>
+
+    <div class="card" id="evalResultCard" style="display:none;">
+      <h3 style="margin-top:0;font-size:16px;">전·후 비교 & 달성 판정</h3>
+      <div id="evalBars" class="bars"></div>
+      <div id="evalVerdict" style="margin-top:14px;"></div>
+
+      <!-- 미달성 시 사정으로 순환 안내 -->
+      <div id="cycleBanner" class="cycle hidden">
+        <span class="arrow">↺</span>
+        <div>
+          <b>간호과정은 순환합니다.</b>
+          <div class="tagline">목표가 미달성/부분달성이면, 평가 결과를 근거로 <b>사정 단계로 되돌아가</b> 자료를 재수집하고 진단·계획을 수정합니다.</div>
+        </div>
+        <button class="btn rose sm" onclick="go('A')">↺ 사정으로 순환</button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn ghost" onclick="go('I')">← 수행</button>
+      <button class="btn" onclick="go('MAP')">NNN 연계 맵 보기 →</button>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       NNN 연계 맵 (핵심 시각화)
+       ======================================================================= -->
+  <section class="panel" id="panel-MAP" style="--accent:var(--green-700)">
+    <div class="section-head"><span class="badge">NNN</span><h2>NANDA-NOC-NIC 연계 맵</h2></div>
+    <p class="section-desc">내가 구성한 간호과정을 하나의 연결 다이어그램으로 확인합니다:
+      <span class="mono">[단서] → [NANDA 진단] → [NOC 결과] / [NIC 중재] → [평가]</span></p>
+
+    <div class="map-wrap"><svg id="nnnMap" width="1100" height="460" viewBox="0 0 1100 460" role="img" aria-label="NNN 연계 다이어그램"></svg></div>
+
+    <div class="nav-row">
+      <button class="btn ghost" onclick="go('E')">← 평가</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn" onclick="saveProcess()">이 간호과정 저장</button>
+        <button class="btn ghost" onclick="go('HIST')">작성 이력 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       작성 이력
+       ======================================================================= -->
+  <section class="panel" id="panel-HIST" style="--accent:var(--green-700)">
+    <div class="section-head"><span class="badge">LOG</span><h2>작성 이력</h2></div>
+    <p class="section-desc">완성한 간호과정을 시나리오별로 저장·재조회합니다. (localStorage)</p>
+    <div id="histList"></div>
+    <div class="nav-row">
+      <button class="btn ghost" onclick="go('MAP')">← 연계 맵</button>
+      <button class="btn ghost" onclick="clearHistory()">이력 전체 삭제</button>
+    </div>
+
+    <!-- 분류체계 출처 고지 -->
+    <p class="src-note">
+      <b>분류체계 출처</b> · 본 도구는 전체 분류표를 포함하지 않으며, 탑재 시나리오 학습에 필요한 핵심 항목만 교육 예시로 선별하였습니다.<br/>
+      · NANDA-I 간호진단 — NANDA International<br/>
+      · NIC(Nursing Interventions Classification) — by Elsevier<br/>
+      · NOC(Nursing Outcomes Classification) — by Elsevier
+    </p>
+  </section>
+
+</main>
+
+<footer class="fixed">제프리 교수 · <b>청암대학교 간호학과</b> · 간호과정 ADPIE & NNN 연계 교육용 도구</footer>
+
+<script>
+/* ===========================================================================
+   12. 사전 탑재 데이터 (DATA)
+   - 3개 가상 시나리오 + 시나리오별 단서/진단/NOC/NIC 연계 (선별 예시)
+   - 저작권: 전체 분류표가 아닌, 학습에 필요한 핵심 항목만 발췌
+   =========================================================================== */
+const DATA = {
+  /* --------------------------- 가상환자 A : 호흡기 --------------------------- */
+  A:{
+    id:"A", name:"가상환자 A", tag:"호흡기계",
+    blurb:"70세, 폐렴 의심. 기침과 호흡곤란을 호소하며 끈끈한 객담을 배출하지 못함.",
+    /* 사정 자료 단서: type S/O, significant=유의미 단서 여부(정답) */
+    cues:[
+      {id:"a1", text:"\"숨이 차고 가래가 안 떨어져요\"", so:"S", significant:true},
+      {id:"a2", text:"SpO₂", val:"88% (실내공기)", so:"O", significant:true},
+      {id:"a3", text:"호흡수(RR)", val:"28회/분", so:"O", significant:true},
+      {id:"a4", text:"체온", val:"38.2℃", so:"O", significant:true},
+      {id:"a5", text:"폐 청진", val:"양측 하부 수포음(crackle)", so:"O", significant:true},
+      {id:"a6", text:"객담 양상", val:"끈끈한 황색, 배출 곤란", so:"O", significant:true},
+      {id:"a7", text:"혈압", val:"126/78 mmHg", so:"O", significant:false},
+      {id:"a8", text:"\"어제 아들이 면회 왔어요\"", so:"S", significant:false},
+      {id:"a9", text:"키/몸무게", val:"168cm / 64kg", so:"O", significant:false}
+    ],
+    /* 진단 후보: correct=정답 진단, dc=정의특성(단서 id와 매핑) */
+    diagnoses:[
+      {id:"dxA1", name:"비효과적 기도청결", correct:true,
+        def:"기도에서 분비물이나 폐쇄물을 제거하지 못하여 기도 개방을 유지하지 못하는 상태",
+        dcCues:["a1","a5","a6","a3"],
+        etiology:"과다한 기관지 분비물, 비효과적 기침",
+        signs:"수포음, 끈끈한 객담 배출 곤란, 빈호흡"},
+      {id:"dxA2", name:"가스교환 장애", correct:false,
+        def:"폐포-모세혈관막에서의 산소·이산화탄소 교환 과잉 또는 부족 (오답 후보: 단서가 분비물 정체에 더 부합)"},
+      {id:"dxA3", name:"고체온", correct:false,
+        def:"체온 조절 범위를 벗어난 심부체온 상승 (관련 단서는 있으나 주 문제는 기도청결)"},
+      {id:"dxA4", name:"급성 통증", correct:false,
+        def:"실제적·잠재적 조직손상과 관련된 불쾌한 감각 경험 (이 시나리오 단서와 불일치)"},
+      {id:"dxA5", name:"낙상 위험성", correct:false,
+        def:"낙상으로 신체적 손상을 입기 쉬운 취약 상태 (이 시나리오 단서와 불일치)"},
+      {id:"dxA6", name:"불안", correct:false,
+        def:"막연한 위협감에 대한 불편감 (호흡곤란에 동반될 수 있으나 우선순위 아님)"}
+    ],
+    correctDx:"dxA1",
+    /* NOC 결과: 진단과 연계, indicators=지표(현재/목표 예시 시드값) */
+    noc:[
+      {id:"nocA1", name:"기도 개방성 (Airway Patency)", linked:true,
+        def:"기도가 깨끗하고 개방되어 있는 정도",
+        indicators:[
+          {id:"i1", label:"호흡수 정상범위", base:2},
+          {id:"i2", label:"객담 배출 능력", base:2},
+          {id:"i3", label:"부적절한 호흡음(수포음) 없음", base:2}
+        ]},
+      {id:"nocA2", name:"호흡 상태: 환기 (Respiratory Status: Ventilation)", linked:true,
+        def:"폐 안팎으로 공기가 이동하는 정도",
+        indicators:[
+          {id:"i1", label:"호흡 깊이", base:2},
+          {id:"i2", label:"호흡 리듬 규칙성", base:3}
+        ]},
+      {id:"nocA3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"보고되거나 관찰된 통증의 심각도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"보고된 통증", base:3}]}
+    ],
+    /* NIC 중재: 진단·결과와 연계 */
+    nic:[
+      {id:"nicA1", name:"기도 흡인 (Airway Suctioning)", linked:true,
+        def:"인공기도 또는 구강·기관 흡인으로 분비물 제거"},
+      {id:"nicA2", name:"기침 강화 (Cough Enhancement)", linked:true,
+        def:"흡기압을 높여 효과적 기침을 촉진"},
+      {id:"nicA3", name:"호흡 감시 (Respiratory Monitoring)", linked:true,
+        def:"적절한 기도와 가스교환 유지를 위한 자료 수집·분석"},
+      {id:"nicA4", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicA5", name:"통증 관리 (Pain Management)", linked:false,
+        def:"통증 완화·예방 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 B : 수술후 통증 --------------------------- */
+  B:{
+    id:"B", name:"가상환자 B", tag:"수술후 통증",
+    blurb:"45세, 충수절제술 후 6시간 경과. 수술 부위 통증을 강하게 호소.",
+    cues:[
+      {id:"b1", text:"\"수술 부위가 칼로 찌르는 듯 아파요\"", so:"S", significant:true},
+      {id:"b2", text:"통증 척도(NRS)", val:"8 / 10", so:"S", significant:true},
+      {id:"b3", text:"맥박(HR)", val:"104회/분", so:"O", significant:true},
+      {id:"b4", text:"혈압", val:"148/90 mmHg", so:"O", significant:true},
+      {id:"b5", text:"표정·자세", val:"얼굴 찡그림, 복부 보호 자세", so:"O", significant:true},
+      {id:"b6", text:"체온", val:"37.0℃", so:"O", significant:false},
+      {id:"b7", text:"SpO₂", val:"98%", so:"O", significant:false},
+      {id:"b8", text:"\"물을 마셔도 되나요?\"", so:"S", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxB1", name:"급성 통증", correct:true,
+        def:"실제적·잠재적 조직손상과 관련된 불쾌한 감각·정서 경험으로 3개월 미만 지속",
+        dcCues:["b1","b2","b3","b5"],
+        etiology:"수술적 절개(조직손상)",
+        signs:"NRS 8점, 빈맥, 찡그린 표정, 보호 자세"},
+      {id:"dxB2", name:"만성 통증", correct:false,
+        def:"3개월 이상 지속되는 통증 (수술 직후이므로 부적합 — 오답 후보)"},
+      {id:"dxB3", name:"불안", correct:false,
+        def:"막연한 위협에 대한 불편감 (동반 가능하나 주 문제 아님)"},
+      {id:"dxB4", name:"감염 위험성", correct:false,
+        def:"병원체 침입에 취약한 상태 (수술 후 잠재적이나 현 단서는 통증)"},
+      {id:"dxB5", name:"비효과적 기도청결", correct:false,
+        def:"기도 분비물 제거 곤란 (이 시나리오 단서와 불일치)"},
+      {id:"dxB6", name:"체액 부족", correct:false,
+        def:"혈관내·간질·세포내 수분 감소 (이 시나리오 단서와 불일치)"}
+    ],
+    correctDx:"dxB1",
+    noc:[
+      {id:"nocB1", name:"통증 수준 (Pain Level)", linked:true,
+        def:"보고되거나 관찰된 통증의 심각도",
+        indicators:[
+          {id:"i1", label:"보고된 통증 강도(낮을수록 좋음)", base:1},
+          {id:"i2", label:"안면 통증 표정 없음", base:2},
+          {id:"i3", label:"맥박 정상범위", base:2}
+        ]},
+      {id:"nocB2", name:"통증 조절 (Pain Control)", linked:true,
+        def:"통증을 인지·관리하는 개인의 행동",
+        indicators:[
+          {id:"i1", label:"진통제를 적절히 사용", base:2},
+          {id:"i2", label:"비약물적 완화법 사용", base:1}
+        ]},
+      {id:"nocB3", name:"기도 개방성 (Airway Patency)", linked:false,
+        def:"기도 개방 정도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"호흡음 정상", base:4}]}
+    ],
+    nic:[
+      {id:"nicB1", name:"통증 관리 (Pain Management)", linked:true,
+        def:"환자가 수용 가능한 수준으로 통증을 완화·예방"},
+      {id:"nicB2", name:"진통제 투여 (Analgesic Administration)", linked:true,
+        def:"통증 완화를 위한 약물 사용"},
+      {id:"nicB3", name:"활력징후 감시 (Vital Signs Monitoring)", linked:true,
+        def:"합병증 예방을 위한 활력징후 수집·분석"},
+      {id:"nicB4", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicB5", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 C : 낙상 위험 --------------------------- */
+  C:{
+    id:"C", name:"가상환자 C", tag:"안전 / 낙상위험",
+    blurb:"78세, 이뇨제·수면진정제 복용. 기립 시 어지럼과 보행 불안정 호소.",
+    cues:[
+      {id:"c1", text:"\"일어설 때 핑 돌고 다리에 힘이 없어요\"", so:"S", significant:true},
+      {id:"c2", text:"기립성 혈압", val:"누워서 128/80 → 서서 104/66", so:"O", significant:true},
+      {id:"c3", text:"하지 근력", val:"MMT 4/5, 보행 시 비틀거림", so:"O", significant:true},
+      {id:"c4", text:"투약력", val:"이뇨제 + 수면진정제 복용 중", so:"O", significant:true},
+      {id:"c5", text:"낙상력", val:"3개월 내 1회 낙상 경험", so:"O", significant:true},
+      {id:"c6", text:"\"안경 도수가 안 맞아요\"", so:"S", significant:true},
+      {id:"c7", text:"체온", val:"36.6℃", so:"O", significant:false},
+      {id:"c8", text:"SpO₂", val:"97%", so:"O", significant:false},
+      {id:"c9", text:"\"식사는 다 했어요\"", so:"S", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxC1", name:"낙상 위험성", correct:true,
+        def:"낙상으로 신체적 손상을 입기 쉬운, 건강을 위협하는 취약 상태",
+        dcCues:["c1","c2","c3","c4","c5","c6"],
+        etiology:"기립성 저혈압, 하지 근력 약화, 진정제 복용, 낙상력, 시력 저하",
+        signs:"(위험진단은 증상이 아닌 '위험요인'으로 기술)"},
+      {id:"dxC2", name:"신체 기동성 장애", correct:false,
+        def:"독립적·의도적 신체 움직임의 제한 (관련되나 현 핵심은 '위험' 예방)"},
+      {id:"dxC3", name:"급성 통증", correct:false,
+        def:"조직손상 관련 불쾌한 감각 (이 시나리오 단서와 불일치)"},
+      {id:"dxC4", name:"체액 부족 위험성", correct:false,
+        def:"혈관내 수분 감소에 취약 (이뇨제 관련 가능하나 주 위험은 낙상)"},
+      {id:"dxC5", name:"비효과적 기도청결", correct:false,
+        def:"기도 분비물 제거 곤란 (이 시나리오 단서와 불일치)"},
+      {id:"dxC6", name:"감염 위험성", correct:false,
+        def:"병원체 침입에 취약 (이 시나리오 단서와 불일치)"}
+    ],
+    correctDx:"dxC1",
+    noc:[
+      {id:"nocC1", name:"낙상 예방 행위 (Fall Prevention Behavior)", linked:true,
+        def:"낙상을 예방하기 위한 개인·보호자의 행동",
+        indicators:[
+          {id:"i1", label:"보조기구 올바르게 사용", base:2},
+          {id:"i2", label:"천천히 일어나기 실천", base:1},
+          {id:"i3", label:"위험요인 인지·제거", base:2}
+        ]},
+      {id:"nocC2", name:"낙상 발생 (Falls Occurrence)", linked:true,
+        def:"낙상 발생 건수 (적을수록 좋음)",
+        indicators:[
+          {id:"i1", label:"기립 시 낙상 없음", base:2},
+          {id:"i2", label:"보행 시 낙상 없음", base:2}
+        ]},
+      {id:"nocC3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"보고된 통증", base:4}]}
+    ],
+    nic:[
+      {id:"nicC1", name:"낙상 예방 (Fall Prevention)", linked:true,
+        def:"낙상 위험이 있는 대상자의 위험요인을 최소화"},
+      {id:"nicC2", name:"환경 관리: 안전 (Environmental Management: Safety)", linked:true,
+        def:"안전 증진을 위한 물리적 환경의 감시·조작"},
+      {id:"nicC3", name:"운동요법: 균형 (Exercise Therapy: Balance)", linked:true,
+        def:"균형 유지·회복을 위한 활동 제공"},
+      {id:"nicC4", name:"진통제 투여 (Analgesic Administration)", linked:false,
+        def:"통증 완화 약물 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicC5", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  }
+};
+
+const STEPS=[
+  {k:"A", n:1, t:"사정", e:"Assessment", v:"--step-a"},
+  {k:"D", n:2, t:"진단", e:"Diagnosis",  v:"--step-d"},
+  {k:"P", n:3, t:"계획", e:"Planning",   v:"--step-p"},
+  {k:"I", n:4, t:"수행", e:"Implement",  v:"--step-i"},
+  {k:"E", n:5, t:"평가", e:"Evaluation", v:"--step-e"}
+];
+
+/* ===========================================================================
+   13. 작업 상태(state) — 학생이 입력한 내용. localStorage와 동기화
+   =========================================================================== */
+let state = blankState("A");
+function blankState(scn){
+  return {
+    scenario:scn,
+    pickedCues:[],          // 선택한 단서 id
+    soClass:{},             // {cueId:"S"|"O"} 학생 분류
+    dx:"",                  // 선택 진단 id
+    pes:{p:"",e:"",s:""},
+    noc:"",                 // 선택 NOC id
+    nocTargets:{},          // {indId:{base,target}}
+    nocBase:{},             // {indId:base(현재)}
+    measure:"",
+    nics:[],                // 선택 NIC id 배열
+    activities:"",
+    evalVals:{},            // {indId:afterValue}
+    updated:null
+  };
+}
+let current="A"; // 현재 화면 단계 키
+
+/* ===========================================================================
+   14. 내비게이션 / stepper 렌더
+   =========================================================================== */
+function renderStepper(){
+  const order=["A","D","P","I","E"];
+  const idx=order.indexOf(current);
+  document.getElementById("stepper").innerHTML = STEPS.map((s,i)=>{
+    const isActive = s.k===current;
+    const isDone = idx>-1 && i<idx;
+    return `<button class="step-btn ${isActive?'active':''} ${isDone?'done':''}"
+        style="--accent:var(${s.v})" onclick="go('${s.k}')">
+        <span class="num" style="background:${isActive?`var(${s.v})`:''}">${isDone?'':s.n}</span>
+        <span class="lab"><b>${s.t}</b><span>${s.e}</span></span>
+      </button>`;
+  }).join("");
+}
+
+function go(k){
+  current=k;
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById("panel-"+k).classList.add("active");
+  renderStepper();
+  // 단계 진입 시 해당 화면 갱신
+  if(k==="D") renderDiagnosis();
+  if(k==="P") renderPlanning();
+  if(k==="I") renderImplementation();
+  if(k==="E") renderEvaluation();
+  if(k==="MAP") renderMap();
+  if(k==="HIST") renderHistory();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ===========================================================================
+   15. 단계 A — 시나리오 선택 + 단서 렌더
+   =========================================================================== */
+function renderScenarioPick(){
+  document.getElementById("scnPick").innerHTML = ["A","B","C"].map(k=>{
+    const s=DATA[k];
+    return `<button class="scn-card ${state.scenario===k?'active':''}" onclick="selectScenario('${k}')">
+        <span class="tag">${s.tag}</span>
+        <h4>${s.name}</h4>
+        <p>${s.blurb}</p>
+      </button>`;
+  }).join("");
+}
+
+function selectScenario(k){
+  if(state.scenario!==k){
+    if(!confirm("시나리오를 바꾸면 현재 작업 내용이 초기화됩니다. 계속할까요?")) return;
+    state = blankState(k);
+    persist();
+  }
+  renderScenarioPick();
+  renderCues();
+  renderCueSummary();
+}
+
+function renderCues(){
+  const s=DATA[state.scenario];
+  document.getElementById("cueList").innerHTML = s.cues.map(c=>{
+    const picked = state.pickedCues.includes(c.id);
+    const userSO = state.soClass[c.id] || "";
+    const wrong = userSO && userSO!==c.so;
+    const valHtml = c.val ? ` <span class="val">${c.val}</span>` : "";
+    return `<div class="cue ${picked?'picked':''}">
+        <input type="checkbox" ${picked?'checked':''} onchange="toggleCue('${c.id}')" aria-label="단서 선택"/>
+        <div class="body">
+          <div class="txt">${c.text}${valHtml}</div>
+          <div class="so">분류:
+            <select onchange="setSO('${c.id}',this.value)">
+              <option value="">선택</option>
+              <option value="S" ${userSO==='S'?'selected':''}>S 주관적</option>
+              <option value="O" ${userSO==='O'?'selected':''}>O 객관적</option>
+            </select>
+            ${wrong?`<span class="flag">↺ 다시 분류해보세요</span>`:""}
+            ${userSO&&!wrong?`<span style="color:var(--good);font-size:11px;font-family:var(--mono)">✓</span>`:""}
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function toggleCue(id){
+  const i=state.pickedCues.indexOf(id);
+  if(i>-1) state.pickedCues.splice(i,1); else state.pickedCues.push(id);
+  persist(); renderCues(); renderCueSummary();
+}
+function setSO(id,v){ state.soClass[id]=v; persist(); renderCues(); }
+
+function renderCueSummary(){
+  const s=DATA[state.scenario];
+  const picked = s.cues.filter(c=>state.pickedCues.includes(c.id));
+  const sList = picked.filter(c=>c.so==="S");
+  const oList = picked.filter(c=>c.so==="O");
+  document.getElementById("cueSummary").innerHTML =
+    `<div style="font-family:var(--sans);font-size:13px;line-height:1.8">
+      <div><span class="pill s">S</span> 주관적 ${sList.length}개 · <span class="pill o">O</span> 객관적 ${oList.length}개 · 총 ${picked.length}개 선택</div>
+      <ul style="margin:8px 0 0;padding-left:18px;color:var(--ink)">
+        ${picked.map(c=>`<li>${c.text}${c.val?` <span class="mono">${c.val}</span>`:""}</li>`).join("") || "<li style='color:var(--muted)'>아직 선택한 단서가 없습니다.</li>"}
+      </ul>
+    </div>`;
+
+  // 유의미 단서 선택 피드백 (정답 단서 대비)
+  const sigIds = s.cues.filter(c=>c.significant).map(c=>c.id);
+  const hitSig = state.pickedCues.filter(id=>sigIds.includes(id)).length;
+  const noise  = state.pickedCues.filter(id=>!sigIds.includes(id)).length;
+  let cls="warn", msg="";
+  if(picked.length===0){ cls="warn"; msg="제시 자료를 검토하고 진단에 단서가 될 자료를 선택해 보세요."; }
+  else {
+    cls = (hitSig>=Math.ceil(sigIds.length*0.6) && noise===0) ? "good" : "warn";
+    msg = `유의미 단서 <b>${hitSig}/${sigIds.length}</b>개 포착` + (noise>0?`, 관련성 낮은 자료 ${noise}개 포함(재검토 권장).`:` — 핵심 단서를 잘 식별했습니다.`);
+  }
+  document.getElementById("cueFeedback").innerHTML =
+    `<div class="feedback ${cls}"><b>단서 식별 피드백</b>${msg}</div>`;
+}
+
+/* ===========================================================================
+   16. 단계 D — 진단 선택 + 정합성 피드백 + PES
+   =========================================================================== */
+function renderDiagnosis(){
+  const s=DATA[state.scenario];
+  const sel=document.getElementById("dxSelect");
+  sel.innerHTML = `<option value="">— 진단을 선택하세요 —</option>` +
+    s.diagnoses.map(d=>`<option value="${d.id}" ${state.dx===d.id?'selected':''}>${d.name}</option>`).join("");
+  // PES 복원
+  document.getElementById("pesP").value=state.pes.p;
+  document.getElementById("pesE").value=state.pes.e;
+  document.getElementById("pesS").value=state.pes.s;
+  onDxChange(true);
+  // PES 입력 바인딩(1회)
+  ["pesP","pesE","pesS"].forEach(id=>{
+    const el=document.getElementById(id);
+    el.oninput=()=>{ state.pes={p:document.getElementById('pesP').value,e:document.getElementById('pesE').value,s:document.getElementById('pesS').value}; persist(); };
+  });
+}
+
+function onDxChange(silent){
+  const s=DATA[state.scenario];
+  const id=document.getElementById("dxSelect").value;
+  if(!silent){ state.dx=id; persist(); }
+  const dx=s.diagnoses.find(d=>d.id===id);
+  document.getElementById("dxDefHint").innerHTML = dx? `<b>정의:</b> ${dx.def}` : "";
+
+  if(!dx){ document.getElementById("dxFeedback").innerHTML=""; return; }
+
+  // 단서-진단 정합성 분석
+  const picked=state.pickedCues;
+  let html="";
+  if(dx.correct){
+    const matched = (dx.dcCues||[]).filter(c=>picked.includes(c));
+    const missed  = (dx.dcCues||[]).filter(c=>!picked.includes(c));
+    html=`<div class="feedback good"><b>✓ 단서–진단 정합성: 적절</b>
+        선택한 단서가 「${dx.name}」의 정의특성과 부합합니다.
+        <ul>
+          <li>일치한 정의특성 단서: <b>${matched.length}/${(dx.dcCues||[]).length}</b></li>
+          ${missed.length?`<li>추가로 사정하면 좋은 단서: ${missed.map(c=>cueText(c)).join(", ")}</li>`:""}
+        </ul></div>`;
+    // PES 자동 힌트 제공
+    if(!state.pes.p && !state.pes.e && !state.pes.s){
+      document.getElementById("pesP").placeholder=dx.name;
+      document.getElementById("pesE").placeholder=dx.etiology||"";
+      document.getElementById("pesS").placeholder=dx.signs||"";
+    }
+  } else {
+    html=`<div class="feedback bad"><b>⚠ 단서–진단 정합성: 재검토</b>
+        「${dx.name}」은(는) 이 시나리오의 단서와 충분히 부합하지 않을 수 있습니다.
+        제시 자료의 핵심 단서가 어떤 진단의 정의특성에 더 잘 맞는지 다시 살펴보세요.</div>`;
+  }
+  document.getElementById("dxFeedback").innerHTML=html;
+}
+function cueText(id){
+  const s=DATA[state.scenario];
+  const c=s.cues.find(x=>x.id===id);
+  return c? (c.text.replace(/"/g,'')+(c.val?` ${c.val}`:"")) : id;
+}
+
+/* ===========================================================================
+   17. 단계 P — NOC 결과 + 지표 척도 설정
+   =========================================================================== */
+function renderPlanning(){
+  const s=DATA[state.scenario];
+  const sel=document.getElementById("nocSelect");
+  sel.innerHTML = `<option value="">— NOC 결과를 선택하세요 —</option>` +
+    s.noc.map(n=>`<option value="${n.id}" ${state.noc===n.id?'selected':''}>${n.name}</option>`).join("");
+  document.getElementById("nocMeasure").value=state.measure||"";
+  document.getElementById("nocMeasure").oninput=e=>{state.measure=e.target.value;persist();};
+  onNocChange(true);
+}
+
+function onNocChange(silent){
+  const s=DATA[state.scenario];
+  const id=document.getElementById("nocSelect").value;
+  if(!silent){
+    if(state.noc!==id){ state.noc=id; state.nocTargets={}; state.nocBase={}; state.evalVals={}; }
+    persist();
+  }
+  const noc=s.noc.find(n=>n.id===id);
+  const hint=document.getElementById("nocDefHint");
+  const card=document.getElementById("nocIndicatorCard");
+  if(!noc){ hint.innerHTML=""; card.style.display="none"; return; }
+
+  const linkNote = noc.linked
+    ? `<span style="color:var(--good)">✓ 선택 진단과 연계가 적절합니다.</span>`
+    : `<span style="color:var(--bad)">⚠ 선택 진단과 연계가 약합니다 — 재검토 권장.</span>`;
+  hint.innerHTML = `<b>정의:</b> ${noc.def}<br/>${linkNote}`;
+
+  card.style.display="block";
+  document.getElementById("nocIndicators").innerHTML = noc.indicators.map(ind=>{
+    const base = state.nocBase[ind.id] ?? ind.base;
+    const tgt  = state.nocTargets[ind.id]?.target ?? Math.min(5, base+2);
+    state.nocBase[ind.id]=base;
+    state.nocTargets[ind.id]={base, target:tgt};
+    return `<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="font-weight:700;font-size:14px;margin-bottom:8px;">${ind.label}</div>
+        <div class="scale-row"><span class="lab">현재 척도</span>${likert(ind.id,'base',base)}</div>
+        <div class="scale-row"><span class="lab">목표 척도</span>${likert(ind.id,'target',tgt)}</div>
+      </div>`;
+  }).join("");
+  persist();
+}
+
+function likert(indId,kind,sel,evalMode){
+  let b="";
+  for(let v=1;v<=5;v++){
+    b+=`<button class="${sel==v?'sel':''}" onclick="setScale('${indId}','${kind}',${v},${!!evalMode})">${v}</button>`;
+  }
+  return `<div class="likert ${evalMode?'eval':''}">${b}</div>`;
+}
+function setScale(indId,kind,v,evalMode){
+  if(kind==='base'){ state.nocBase[indId]=v; if(!state.nocTargets[indId])state.nocTargets[indId]={}; state.nocTargets[indId].base=v; }
+  if(kind==='target'){ if(!state.nocTargets[indId])state.nocTargets[indId]={}; state.nocTargets[indId].target=v; }
+  if(kind==='after'){ state.evalVals[indId]=v; }
+  persist();
+  if(evalMode){ renderEvaluation(); } else { onNocChange(true); }
+}
+
+/* ===========================================================================
+   18. 단계 I — NIC 중재 + 정합성 + 간호활동
+   =========================================================================== */
+function renderImplementation(){
+  const s=DATA[state.scenario];
+  document.getElementById("nicList").innerHTML = s.nic.map(n=>{
+    const on=state.nics.includes(n.id);
+    return `<label class="cue ${on?'picked':''}" style="cursor:pointer">
+        <input type="checkbox" ${on?'checked':''} onchange="toggleNic('${n.id}')" style="accent-color:var(--step-i)"/>
+        <div class="body"><div class="txt"><b>${n.name}</b></div>
+        <div class="tagline">${n.def}</div></div>
+      </label>`;
+  }).join("");
+  document.getElementById("nicActivities").value=state.activities||"";
+  document.getElementById("nicActivities").oninput=e=>{state.activities=e.target.value;persist();};
+  renderNicFeedback();
+}
+function toggleNic(id){
+  const i=state.nics.indexOf(id);
+  if(i>-1) state.nics.splice(i,1); else state.nics.push(id);
+  persist(); renderImplementation();
+}
+function renderNicFeedback(){
+  const s=DATA[state.scenario];
+  if(state.nics.length===0){ document.getElementById("nicFeedback").innerHTML=""; return; }
+  const chosen=s.nic.filter(n=>state.nics.includes(n.id));
+  const good=chosen.filter(n=>n.linked);
+  const bad =chosen.filter(n=>!n.linked);
+  let cls = bad.length===0 ? "good":"warn";
+  document.getElementById("nicFeedback").innerHTML =
+    `<div class="feedback ${cls}"><b>진단–중재 정합성</b>
+      <ul>
+        <li>진단/결과와 논리적으로 연결되는 중재: <b>${good.length}</b>개 (${good.map(n=>n.name).join(", ")||"없음"})</li>
+        ${bad.length?`<li style="color:var(--bad)">연계가 약한 중재: ${bad.map(n=>n.name).join(", ")} — 진단·결과와의 논리적 연결을 재검토하세요.</li>`:""}
+      </ul></div>`;
+}
+
+/* ===========================================================================
+   19. 단계 E — 재측정 입력 + 전후 비교 + 달성 판정 + 순환
+   =========================================================================== */
+function renderEvaluation(){
+  const s=DATA[state.scenario];
+  const noc=s.noc.find(n=>n.id===state.noc);
+  const card=document.getElementById("evalCard");
+  if(!noc){
+    card.innerHTML=`<div class="feedback warn">먼저 <b>계획(P)</b> 단계에서 NOC 결과와 목표 척도를 설정하세요.</div>`;
+    document.getElementById("evalResultCard").style.display="none";
+    return;
+  }
+  card.innerHTML = `<h3 style="margin-top:0;font-size:16px;">수행 후 재측정 — ${noc.name}</h3>` +
+    noc.indicators.map(ind=>{
+      const after = state.evalVals[ind.id] ?? "";
+      return `<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${ind.label}</div>
+          <div class="tagline" style="margin-bottom:8px">현재 ${state.nocBase[ind.id]??'-'} → 목표 ${state.nocTargets[ind.id]?.target??'-'} (수행 후 값 입력)</div>
+          <div class="scale-row"><span class="lab">수행 후</span>${likert(ind.id,'after',after,true)}</div>
+        </div>`;
+    }).join("");
+
+  // 결과가 모두 입력되면 판정
+  const allIn = noc.indicators.every(ind=>state.evalVals[ind.id]);
+  const res=document.getElementById("evalResultCard");
+  if(!allIn){ res.style.display="none"; return; }
+  res.style.display="block";
+
+  // 전후 비교 막대
+  document.getElementById("evalBars").innerHTML = noc.indicators.map(ind=>{
+    const base=state.nocBase[ind.id], tgt=state.nocTargets[ind.id]?.target, after=state.evalVals[ind.id];
+    return `<div class="bar-wrap">
+        <div class="cap"><span>${ind.label}</span><span class="mono">전 ${base} · 후 ${after} · 목표 ${tgt}</span></div>
+        <div class="bar-track">
+          <div class="bar-fill after" style="width:${after/5*100}%">${after}</div>
+          <div class="bar-fill target" style="width:${tgt/5*100}%"></div>
+        </div>
+        <div class="bar-track" style="height:14px;margin-top:4px;">
+          <div class="bar-fill before" style="width:${base/5*100}%;font-size:10px">전 ${base}</div>
+        </div>
+      </div>`;
+  }).join("");
+
+  // 달성 판정: 지표별 (후>=목표=달성, 후>전=부분, 그외 미달)
+  let metN=0, partN=0, unmetN=0;
+  noc.indicators.forEach(ind=>{
+    const base=state.nocBase[ind.id], tgt=state.nocTargets[ind.id]?.target, after=state.evalVals[ind.id];
+    if(after>=tgt) metN++;
+    else if(after>base) partN++;
+    else unmetN++;
+  });
+  let verdict, vclass, advice;
+  if(unmetN===0 && partN===0){ verdict="목표 달성"; vclass="met"; advice="설정한 모든 결과지표가 목표 척도에 도달했습니다. 간호과정을 종결하거나 다음 우선순위 진단으로 진행합니다."; }
+  else if(metN>0){ verdict="부분 달성"; vclass="part"; advice="일부 지표만 목표에 도달했습니다. 미달 지표의 원인을 사정 단계에서 재확인하고 계획을 수정하세요."; }
+  else { verdict="목표 미달성"; vclass="unmet"; advice="목표에 도달하지 못했습니다. 평가 결과를 근거로 사정 단계로 되돌아가 자료를 재수집하고 진단·계획을 수정해야 합니다."; }
+
+  document.getElementById("evalVerdict").innerHTML =
+    `<span class="verdict ${vclass}">${verdict}</span>
+     <span class="mono" style="margin-left:10px;color:var(--muted)">달성 ${metN} · 부분 ${partN} · 미달 ${unmetN}</span>
+     <p class="tagline" style="margin-top:10px">${advice}</p>`;
+
+  // 미달성/부분달성이면 순환 배너 노출
+  const banner=document.getElementById("cycleBanner");
+  if(vclass==="met") banner.classList.add("hidden"); else banner.classList.remove("hidden");
+}
+
+/* ===========================================================================
+   20. NNN 연계 맵 (SVG) — [단서] → [NANDA] → [NOC]/[NIC] → [평가]
+   =========================================================================== */
+function renderMap(){
+  const s=DATA[state.scenario];
+  const dx=s.diagnoses.find(d=>d.id===state.dx);
+  const noc=s.noc.find(n=>n.id===state.noc);
+  const nics=s.nic.filter(n=>state.nics.includes(n.id));
+  const cues=s.cues.filter(c=>state.pickedCues.includes(c.id));
+
+  const svg=document.getElementById("nnnMap");
+  const NS="http://www.w3.org/2000/svg";
+  svg.innerHTML="";
+
+  // 화살표 마커 정의
+  const defs=document.createElementNS(NS,"defs");
+  defs.innerHTML=`<marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker>`;
+  svg.appendChild(defs);
+
+  // 노드 그리기 헬퍼
+  function node(x,y,w,h,title,sub,color){
+    const g=document.createElementNS(NS,"g");
+    const r=document.createElementNS(NS,"rect");
+    r.setAttribute("x",x);r.setAttribute("y",y);r.setAttribute("width",w);r.setAttribute("height",h);
+    r.setAttribute("rx",10);r.setAttribute("fill","#fff");r.setAttribute("stroke",color);r.setAttribute("stroke-width","2");
+    g.appendChild(r);
+    const t=document.createElementNS(NS,"text");
+    t.setAttribute("x",x+12);t.setAttribute("y",y+22);t.setAttribute("class","ntitle");
+    t.setAttribute("font-size","13");t.setAttribute("fill",color);t.textContent=title;
+    g.appendChild(t);
+    if(sub){
+      wrapText(g,sub,x+12,y+40,w-24,12,"#475569",4);
+    }
+    svg.appendChild(g);
+  }
+  function line(x1,y1,x2,y2){
+    const l=document.createElementNS(NS,"line");
+    l.setAttribute("x1",x1);l.setAttribute("y1",y1);l.setAttribute("x2",x2);l.setAttribute("y2",y2);
+    l.setAttribute("stroke","#94a3b8");l.setAttribute("stroke-width","2");l.setAttribute("marker-end","url(#arr)");
+    svg.appendChild(l);
+  }
+  function wrapText(g,str,x,y,maxw,lh,fill,maxLines){
+    const words=str.split(/(?<=,|·|\/)|\s/).filter(Boolean);
+    let line="",ln=0;
+    const push=(txt)=>{const t=document.createElementNS(NS,"text");t.setAttribute("x",x);t.setAttribute("y",y+ln*lh);
+      t.setAttribute("font-size","11");t.setAttribute("fill",fill);t.textContent=txt;g.appendChild(t);};
+    for(const w of words){
+      if((line+w).length>maxw/6){ push(line); ln++; line=w; if(ln>=maxLines-1){push(line+" …");return;} }
+      else line+=w;
+    }
+    if(line) push(line);
+  }
+
+  // 레이아웃: 5개 열
+  const cueSub = cues.length? cues.map(c=>c.text.replace(/"/g,'').slice(0,14)).join(", ") : "단서 미선택";
+  node(20,140,180,170,"① 단서 (Cues)",cueSub,"#0e7490");
+
+  node(240,150,180,150,"② NANDA 진단", dx?dx.name:"진단 미선택","#7c3aed");
+
+  node(470,40,200,140,"③ NOC 결과", noc?noc.name:"결과 미선택","#0369a1");
+  node(470,250,200,160,"④ NIC 중재", nics.length?nics.map(n=>n.name).join(", "):"중재 미선택","#b45309");
+
+  // 평가 노드 + 판정
+  const verdictTxt = evalVerdictText();
+  node(720,140,180,170,"⑤ 평가 (E)", verdictTxt,"#be123c");
+
+  // 연결선
+  line(200,225,240,225);     // 단서→진단
+  line(420,225,470,110);     // 진단→NOC
+  line(420,225,470,330);     // 진단→NIC
+  line(670,110,720,200);     // NOC→평가
+  line(670,330,720,250);     // NIC→평가
+
+  // 순환 화살표 (평가 → 사정)
+  const cyc=document.createElementNS(NS,"path");
+  cyc.setAttribute("d","M810,310 C 810,430 110,430 110,312");
+  cyc.setAttribute("fill","none");cyc.setAttribute("stroke","#be123c");
+  cyc.setAttribute("stroke-width","2");cyc.setAttribute("stroke-dasharray","6 5");cyc.setAttribute("marker-end","url(#arr)");
+  svg.appendChild(cyc);
+  const ct=document.createElementNS(NS,"text");
+  ct.setAttribute("x",460);ct.setAttribute("y",448);ct.setAttribute("text-anchor","middle");
+  ct.setAttribute("font-size","12");ct.setAttribute("fill","#be123c");ct.setAttribute("font-weight","600");
+  ct.textContent="↺ 평가 결과는 사정으로 순환한다 (간호과정의 순환성)";
+  svg.appendChild(ct);
+}
+
+function evalVerdictText(){
+  const s=DATA[state.scenario];
+  const noc=s.noc.find(n=>n.id===state.noc);
+  if(!noc) return "평가 미완료";
+  const ind=noc.indicators;
+  if(!ind.every(i=>state.evalVals[i.id])) return "재측정 미입력";
+  let met=0;
+  ind.forEach(i=>{ if(state.evalVals[i.id]>=state.nocTargets[i.id]?.target) met++; });
+  if(met===ind.length) return "목표 달성";
+  if(met>0) return "부분 달성 → 재사정";
+  return "미달성 → 재사정";
+}
+
+/* ===========================================================================
+   21. localStorage 저장 / 이력
+   =========================================================================== */
+const LS_WORK="adpie_work_v1";   // 진행 중 작업
+const LS_HIST="adpie_hist_v1";   // 저장된 간호과정 이력
+
+function persist(){
+  state.updated=new Date().toISOString();
+  try{ localStorage.setItem(LS_WORK, JSON.stringify(state)); }catch(e){}
+}
+function loadWork(){
+  try{
+    const raw=localStorage.getItem(LS_WORK);
+    if(raw){ state=Object.assign(blankState("A"), JSON.parse(raw)); }
+  }catch(e){ state=blankState("A"); }
+}
+
+function saveProcess(){
+  const s=DATA[state.scenario];
+  const dx=s.diagnoses.find(d=>d.id===state.dx);
+  if(!dx){ alert("진단을 먼저 선택하세요."); return; }
+  const noc=s.noc.find(n=>n.id===state.noc);
+  const nics=s.nic.filter(n=>state.nics.includes(n.id));
+  const rec={
+    ts:new Date().toISOString(),
+    scenario:state.scenario,
+    scenarioName:s.name,
+    dx:dx.name,
+    pes:state.pes,
+    noc:noc?noc.name:"-",
+    nics:nics.map(n=>n.name),
+    activities:state.activities,
+    verdict:evalVerdictText(),
+    snapshot:JSON.parse(JSON.stringify(state))
+  };
+  const list=getHist();
+  list.unshift(rec);
+  try{ localStorage.setItem(LS_HIST, JSON.stringify(list.slice(0,50))); }catch(e){}
+  alert("간호과정이 저장되었습니다. (작성 이력에서 확인)");
+  go("HIST");
+}
+function getHist(){
+  try{ return JSON.parse(localStorage.getItem(LS_HIST)||"[]"); }catch(e){ return []; }
+}
+function renderHistory(){
+  const list=getHist();
+  const el=document.getElementById("histList");
+  if(list.length===0){ el.innerHTML=`<div class="feedback warn">아직 저장된 간호과정이 없습니다. 연계 맵 화면에서 “이 간호과정 저장”을 눌러보세요.</div>`; return; }
+  el.innerHTML=list.map((r,idx)=>{
+    const d=new Date(r.ts);
+    return `<div class="hist-item">
+      <div class="row">
+        <h4>${r.scenarioName} · ${r.dx}</h4>
+        <span class="meta">${d.toLocaleString('ko-KR')}</span>
+      </div>
+      <div class="tagline" style="margin:6px 0">
+        <b>PES</b> ${r.pes.p||'-'} / ${r.pes.e||'-'} / ${r.pes.s||'-'}<br/>
+        <b>NOC</b> ${r.noc} · <b>NIC</b> ${r.nics.join(", ")||'-'} · <b>평가</b> ${r.verdict}
+      </div>
+      <div class="row">
+        <small>${(r.activities||'').slice(0,80)}${(r.activities||'').length>80?'…':''}</small>
+        <span style="display:flex;gap:8px">
+          <button class="btn sm ghost" onclick="restore(${idx})">이어서 보기</button>
+          <button class="btn sm ghost" onclick="delHist(${idx})">삭제</button>
+        </span>
+      </div>
+    </div>`;
+  }).join("");
+}
+function restore(idx){
+  const list=getHist();
+  if(!list[idx]) return;
+  state=Object.assign(blankState("A"), list[idx].snapshot);
+  persist();
+  renderAll();
+  go("MAP");
+}
+function delHist(idx){
+  const list=getHist(); list.splice(idx,1);
+  localStorage.setItem(LS_HIST, JSON.stringify(list));
+  renderHistory();
+}
+function clearHistory(){
+  if(!confirm("저장된 모든 작성 이력을 삭제할까요?")) return;
+  localStorage.removeItem(LS_HIST); renderHistory();
+}
+
+/* ===========================================================================
+   22. 초기화
+   =========================================================================== */
+function renderAll(){
+  renderScenarioPick(); renderCues(); renderCueSummary();
+}
+function init(){
+  loadWork();
+  renderStepper();
+  renderAll();
+  go("A");
+}
+init();
+</script>
+</body>
+</html>
