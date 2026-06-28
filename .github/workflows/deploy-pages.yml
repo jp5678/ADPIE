@@ -1,0 +1,49 @@
+name: Deploy to GitHub Pages
+
+# index.html을 GitHub Pages로 자동 배포합니다.
+# - 기본 브랜치 및 도구 개발 브랜치 push 시 자동 실행
+# - 수동 실행(workflow_dispatch)도 가능
+on:
+  push:
+    branches:
+      - main
+      - master
+      - claude/nursing-adpie-nnn-tool-t2va6v
+  workflow_dispatch:
+
+# Pages 배포에 필요한 권한
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 동시 배포 1개로 제한 (진행 중 배포는 취소하지 않음)
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pages 설정(미설정 시 자동 활성화)
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      # 저장소 전체를 아티팩트로 업로드 (index.html 포함)
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
