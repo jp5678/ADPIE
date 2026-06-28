@@ -25,36 +25,38 @@
 
 <style>
 /* ===========================================================================
-   1. 디자인 시스템 (Care Green 팔레트) — CSS 변수
+   1. 디자인 시스템 (Clinical Blue / Indigo 팔레트) — CSS 변수
    =========================================================================== */
 :root{
-  /* Care Green primary */
-  --green-900:#064e3b;
-  --green-800:#065F46;   /* primary */
-  --green-700:#047857;
-  --green-600:#059669;
-  --green-300:#6ee7b7;
-  --green-100:#d1fae5;
-  --green-050:#ecfdf5;
+  /* Clinical Blue / Indigo primary
+     (변수명은 호환을 위해 --green-* 유지하되 값은 블루 계열로 교체) */
+  --green-900:#1e2a52;   /* 가장 진한 네이비 */
+  --green-800:#1E3A8A;   /* primary */
+  --green-700:#1d4ed8;
+  --green-600:#2563eb;
+  --green-300:#93c5fd;
+  --green-100:#dbeafe;
+  --green-050:#eff4ff;
 
-  /* 단계별 보조 강조색 (A→D→P→I→E 일관 사용) */
-  --step-a:#0e7490;  /* 사정  - teal   */
-  --step-d:#7c3aed;  /* 진단  - violet */
-  --step-p:#0369a1;  /* 계획  - blue   */
-  --step-i:#b45309;  /* 수행  - amber  */
-  --step-e:#be123c;  /* 평가  - rose   */
+  /* 단계별 보조 강조색 (A→D→P→I→E 일관 사용)
+     primary가 네이비이므로 계획(P)은 에메랄드로 두어 가독성 확보 */
+  --step-a:#0891b2;  /* 사정  - cyan    */
+  --step-d:#7c3aed;  /* 진단  - violet  */
+  --step-p:#047857;  /* 계획  - emerald */
+  --step-i:#b45309;  /* 수행  - amber   */
+  --step-e:#be123c;  /* 평가  - rose    */
 
   --ink:#0f172a;
   --muted:#64748b;
   --line:#e2e8f0;
-  --bg:#f6f8f7;
+  --bg:#f5f7fb;
   --card:#ffffff;
   --good:#15803d;
   --warn:#b45309;
   --bad:#be123c;
 
   --radius:14px;
-  --shadow:0 1px 3px rgba(6,95,70,.08), 0 8px 24px rgba(6,95,70,.06);
+  --shadow:0 1px 3px rgba(30,58,138,.08), 0 8px 24px rgba(30,58,138,.06);
   --serif:'Noto Serif KR',serif;
   --sans:'Noto Sans KR',system-ui,sans-serif;
   --mono:'JetBrains Mono',monospace;
@@ -95,11 +97,11 @@ header.top p.sub{margin:4px 0 0;color:var(--green-100);font-size:13px;}
 }
 .step-btn{
   flex:1 1 0;min-width:150px;border:none;border-radius:12px;
-  background:#0c5a44;color:#bdf0dc;padding:10px 12px;text-align:left;
+  background:#274196;color:#cdd9f5;padding:10px 12px;text-align:left;
   display:flex;gap:10px;align-items:center;transition:.15s;
   border:1px solid transparent;
 }
-.step-btn:hover{background:#0e6650;}
+.step-btn:hover{background:#2d4aa8;}
 .step-btn .num{
   width:30px;height:30px;border-radius:50%;flex:0 0 30px;
   display:grid;place-items:center;font-family:var(--mono);font-weight:600;
@@ -107,7 +109,7 @@ header.top p.sub{margin:4px 0 0;color:var(--green-100);font-size:13px;}
 }
 .step-btn .lab{display:flex;flex-direction:column;line-height:1.2;}
 .step-btn .lab b{font-family:var(--serif);font-size:15px;color:#fff;}
-.step-btn .lab span{font-size:11px;color:#9fe3c8;}
+.step-btn .lab span{font-size:11px;color:#a9bdef;}
 .step-btn.active{background:#fff;color:var(--green-900);box-shadow:var(--shadow);}
 .step-btn.active .num{background:var(--accent,var(--green-700));color:#fff;}
 .step-btn.active .lab b{color:var(--green-900);}
@@ -274,7 +276,7 @@ svg .ntitle{font-family:var(--serif);font-weight:700;}
    11. 고정 푸터
    =========================================================================== */
 footer.fixed{
-  position:fixed;bottom:0;left:0;right:0;background:var(--green-900);color:#bdf0dc;
+  position:fixed;bottom:0;left:0;right:0;background:var(--green-900);color:#cdd9f5;
   font-size:12.5px;text-align:center;padding:9px 12px;z-index:50;
   border-top:1px solid rgba(255,255,255,.08);
 }
@@ -1140,11 +1142,11 @@ function renderMap(){
 
   // 레이아웃: 5개 열
   const cueSub = cues.length? cues.map(c=>c.text.replace(/"/g,'').slice(0,14)).join(", ") : "단서 미선택";
-  node(20,140,180,170,"① 단서 (Cues)",cueSub,"#0e7490");
+  node(20,140,180,170,"① 단서 (Cues)",cueSub,"#0891b2");
 
   node(240,150,180,150,"② NANDA 진단", dx?dx.name:"진단 미선택","#7c3aed");
 
-  node(470,40,200,140,"③ NOC 결과", noc?noc.name:"결과 미선택","#0369a1");
+  node(470,40,200,140,"③ NOC 결과", noc?noc.name:"결과 미선택","#047857");
   node(470,250,200,160,"④ NIC 중재", nics.length?nics.map(n=>n.name).join(", "):"중재 미선택","#b45309");
 
   // 평가 노드 + 판정
