@@ -1,15 +1,12 @@
 name: Deploy to GitHub Pages
 
 # index.html을 GitHub Pages로 자동 배포합니다.
-# - 기본 브랜치 및 도구 개발 브랜치 push 시 자동 실행
+# - 기본 브랜치(index) push 시에만 실행 (Pages 환경은 기본 브랜치만 배포 허용)
 # - 수동 실행(workflow_dispatch)도 가능
 on:
   push:
     branches:
-      - index          # 이 저장소의 기본 브랜치
-      - main
-      - master
-      - claude/nursing-adpie-nnn-tool-t2va6v
+      - index          # 이 저장소의 기본 브랜치(배포 대상)
   workflow_dispatch:
 
 # Pages 배포에 필요한 권한
