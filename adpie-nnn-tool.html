@@ -347,7 +347,7 @@ footer.fixed b{color:#fff;font-family:var(--serif);}
     <p class="section-desc">선택한 단서를 근거로 <b>NANDA-I 간호진단</b>을 선택하고, <b>PES 형식</b>(문제·관련요인·증상징후)으로 진술을 구조화하세요.</p>
 
     <div class="card">
-      <label class="fld">NANDA-I 간호진단 선택 <small>(시나리오 관련 후보 + 오답 후보 포함)</small></label>
+      <label class="fld">NANDA-I 간호진단 선택 <small>(시나리오 후보 + 자주 쓰이는 진단 다수 — 가나다순)</small></label>
       <select id="dxSelect" onchange="onDxChange()"><option value="">— 진단을 선택하세요 —</option></select>
       <div id="dxDefHint" class="tagline" style="margin-top:8px;"></div>
       <div id="dxFeedback"></div>
@@ -390,7 +390,7 @@ footer.fixed b{color:#fff;font-family:var(--serif);}
       <b>측정 방법(언제·무엇으로)</b>도 명시하세요.</p>
 
     <div class="card">
-      <label class="fld">NOC 결과 선택 <small>(진단 연계 후보)</small></label>
+      <label class="fld">NOC 결과 선택 <small>(시나리오 연계 후보 + 자주 쓰이는 결과 다수 — 가나다순)</small></label>
       <select id="nocSelect" onchange="onNocChange()"><option value="">— NOC 결과를 선택하세요 —</option></select>
       <div id="nocDefHint" class="tagline" style="margin-top:8px;"></div>
     </div>
@@ -416,7 +416,7 @@ footer.fixed b{color:#fff;font-family:var(--serif);}
     <p class="section-desc">진단·결과에 연계되는 <b>NIC 중재</b>를 선택하고, 구체적 <b>간호활동(activities)</b>을 1~3개 기술하세요.</p>
 
     <div class="card">
-      <label class="fld">NIC 중재 선택 <small>(진단·결과 연계 후보, 복수 선택 가능)</small></label>
+      <label class="fld">NIC 중재 선택 <small>(시나리오 연계 후보 + 자주 쓰이는 중재 다수, 복수 선택 — 가나다순)</small></label>
       <div id="nicList"></div>
       <div id="nicFeedback"></div>
     </div>
@@ -1290,6 +1290,118 @@ const DATA = {
   }
 };
 
+/* ===========================================================================
+   12-b. 공통 후보 풀 (COMMON POOLS)
+   - 시나리오별 정답·연계 항목 외에, 자주 쓰이는 NANDA·NIC·NOC 항목을
+     선택 목록에 함께 제공하여 '감별 연습'의 폭을 넓힌다.
+   - 공통 항목은 모두 distractor(정답/연계 아님)로 취급된다.
+   - 저작권 원칙 준수: 전체 분류표가 아닌, 교육에 자주 등장하는 핵심 항목만 선별.
+   - 같은 이름이 시나리오에 이미 있으면 시나리오 항목을 우선(중복 제거).
+   =========================================================================== */
+const COMMON = {
+  /* NANDA-I 간호진단 (공통 distractor 풀) */
+  dx:[
+    {name:"가스교환 장애", def:"폐포-모세혈관막에서의 산소·이산화탄소 교환 과잉/부족"},
+    {name:"비효과적 호흡양상", def:"흡기·호기가 적절한 환기를 제공하지 못하는 상태"},
+    {name:"심박출량 감소", def:"심장이 박출하는 혈액량이 신체 대사 요구에 부족한 상태"},
+    {name:"비효과적 말초조직 관류", def:"말초의 혈액순환이 감소되어 건강을 위협하는 상태"},
+    {name:"활동 지속성 장애", def:"필요·원하는 일상활동을 견디기에 에너지가 부족한 상태"},
+    {name:"피로", def:"지속적이고 압도적인 소진감과 활동능력 저하"},
+    {name:"불안", def:"불특정·모호한 위협에 대한 막연한 불편감과 자율신경 반응"},
+    {name:"공포(두려움)", def:"식별 가능한 '구체적' 대상/위협에 대한 반응"},
+    {name:"비효과적 대처", def:"스트레스원에 대한 평가·대처 자원의 부적절"},
+    {name:"지식 부족", def:"특정 주제에 대한 인지적 정보의 결여"},
+    {name:"급성 통증", def:"실제적·잠재적 조직손상과 관련된 3개월 미만의 불쾌한 감각"},
+    {name:"만성 통증", def:"3개월 이상 지속·재발하는 불쾌한 감각·정서 경험"},
+    {name:"고체온", def:"체온조절 범위를 벗어난 심부체온 상승"},
+    {name:"체액 부족", def:"혈관내·간질·세포내 수분이 감소된 상태"},
+    {name:"체액 과다", def:"수분 정체로 등장성 체액이 증가된 상태"},
+    {name:"영양불균형: 신체요구량보다 적음", def:"대사 요구를 충족하기에 영양 섭취가 부족한 상태"},
+    {name:"영양불균형: 신체요구량보다 많음", def:"대사 요구를 초과하여 영양을 섭취하는 상태"},
+    {name:"변비", def:"배변 횟수 감소와 단단·건조한 변의 배출 곤란"},
+    {name:"설사", def:"묽고 형태 없는 변을 잦게 배출하는 상태"},
+    {name:"배뇨장애", def:"소변의 저장·배출 기능에 장애가 있는 상태"},
+    {name:"수면 양상 장애", def:"외부 요인에 의한 시간 제한적 수면의 질·양 저하"},
+    {name:"신체 기동성 장애", def:"독립적·의도적 신체 움직임의 제한"},
+    {name:"낙상 위험성", def:"낙상으로 신체 손상을 입기 쉬운 취약 상태"},
+    {name:"감염 위험성", def:"병원체 침입·증식에 취약한 상태"},
+    {name:"흡인 위험성", def:"분비물·음식물 등이 기관지로 들어갈 위험이 있는 상태"},
+    {name:"피부 통합성 장애", def:"표피·진피가 손상된 상태"},
+    {name:"자가간호 결핍: 목욕/위생", def:"스스로 목욕·위생활동을 수행·완수하지 못하는 상태"},
+    {name:"비효과적 건강 자기관리", def:"질병 치료·후유증 관리를 일상에 통합하지 못하는 상태"},
+    {name:"사회적 고립", def:"타인과의 접촉 부족으로 인한 부정적·위협적 고독 경험"}
+  ],
+  /* NOC 결과 (공통 distractor 풀) — 선택 시를 대비해 대표 지표 1개 포함 */
+  noc:[
+    {name:"통증 수준 (Pain Level)", def:"보고/관찰된 통증의 심각도",
+      indicators:[{id:"i1", label:"보고된 통증 강도", base:3}]},
+    {name:"통증 조절 (Pain Control)", def:"통증을 인지·관리하는 개인의 행동",
+      indicators:[{id:"i1", label:"통증 완화법 사용", base:2}]},
+    {name:"활력징후 (Vital Signs)", def:"활력징후가 정상범위로 유지되는 정도",
+      indicators:[{id:"i1", label:"활력징후 정상범위", base:3}]},
+    {name:"호흡 상태: 가스교환", def:"폐포의 O₂·CO₂ 교환이 적절한 정도",
+      indicators:[{id:"i1", label:"동맥혈 산소포화도 정상", base:3}]},
+    {name:"수분 상태 (Hydration)", def:"체내 수분이 적절히 유지되는 정도",
+      indicators:[{id:"i1", label:"적정 수분 상태", base:3}]},
+    {name:"영양 상태 (Nutritional Status)", def:"영양소가 대사 요구를 충족하는 정도",
+      indicators:[{id:"i1", label:"영양 섭취 적절", base:2}]},
+    {name:"배변 양상 (Bowel Elimination)", def:"대변의 형성·배출이 정상인 정도",
+      indicators:[{id:"i1", label:"규칙적 배변", base:3}]},
+    {name:"배뇨 (Urinary Elimination)", def:"소변의 저장·배출이 정상인 정도",
+      indicators:[{id:"i1", label:"정상 배뇨 양상", base:3}]},
+    {name:"불안 수준 (Anxiety Level)", def:"불특정 원천의 긴장·불안의 심각도",
+      indicators:[{id:"i1", label:"보고된 불안 감소", base:3}]},
+    {name:"지식: 질병 과정", def:"특정 질병과 합병증에 대한 이해 정도",
+      indicators:[{id:"i1", label:"질병 과정 이해", base:2}]},
+    {name:"자가간호: 일상생활활동(ADL)", def:"기본적 일상활동을 수행하는 능력",
+      indicators:[{id:"i1", label:"ADL 독립 수행", base:2}]},
+    {name:"이동성 (Mobility)", def:"환경 내에서 스스로 움직이는 능력",
+      indicators:[{id:"i1", label:"독립적 이동", base:2}]},
+    {name:"감염 중증도 (Infection Severity)", def:"감염과 관련 증상의 심각도",
+      indicators:[{id:"i1", label:"감염 징후 없음", base:3}]},
+    {name:"수면 (Sleep)", def:"회복을 위한 수면의 양과 질",
+      indicators:[{id:"i1", label:"수면의 질 만족", base:3}]}
+  ],
+  /* NIC 중재 (공통 distractor 풀) */
+  nic:[
+    {name:"활력징후 감시 (Vital Signs Monitoring)", def:"합병증 예방을 위한 활력징후 수집·분석"},
+    {name:"투약 관리 (Medication Management)", def:"안전·효과적 약물 사용 촉진"},
+    {name:"통증 관리 (Pain Management)", def:"수용 가능한 수준으로 통증 완화·예방"},
+    {name:"진통제 투여 (Analgesic Administration)", def:"통증 완화를 위한 약물 사용"},
+    {name:"산소 요법 (Oxygen Therapy)", def:"산소 투여와 그 효과의 감시"},
+    {name:"호흡 감시 (Respiratory Monitoring)", def:"적절한 기도·가스교환을 위한 자료 수집·분석"},
+    {name:"체액 관리 (Fluid Management)", def:"체액 균형 증진·비정상 정체 예방"},
+    {name:"영양 관리 (Nutrition Management)", def:"균형 잡힌 영양 섭취 촉진"},
+    {name:"감염 예방 (Infection Protection)", def:"감염 위험 대상자의 예방·조기발견"},
+    {name:"환자 교육 (Patient Teaching)", def:"건강관리 지식·기술 습득을 위한 교육"},
+    {name:"정서적 지지 (Emotional Support)", def:"스트레스 상황에서 안심·수용 제공"},
+    {name:"운동 증진 (Exercise Promotion)", def:"신체활동 증진을 촉진"},
+    {name:"낙상 예방 (Fall Prevention)", def:"낙상 위험요인 최소화"},
+    {name:"피부 감시 (Skin Surveillance)", def:"피부·점막 통합성 유지를 위한 자료 수집·분석"},
+    {name:"환경 관리: 안전 (Environmental Management: Safety)", def:"안전 증진을 위한 환경의 감시·조작"}
+  ]
+};
+
+/* ---------------------------------------------------------------------------
+   병합 헬퍼: 시나리오 고유 항목 + 공통 풀(중복 제거) → 가나다순 정렬
+   - 공통 항목 id는 "cmn-…"로 부여(시나리오 id와 충돌 방지)
+   - 공통 dx/noc/nic는 correct/linked 모두 false (distractor)
+   --------------------------------------------------------------------------- */
+function _slug(str){ // 이름 → 안정적 id 조각
+  let h=0; for(let i=0;i<str.length;i++){ h=(h*31+str.charCodeAt(i))>>>0; }
+  return h.toString(36);
+}
+function mergedList(own, pool, extra){
+  const names=new Set(own.map(o=>o.name));
+  const add=pool.filter(p=>!names.has(p.name)).map(p=>Object.assign({
+    id:"cmn-"+_slug(p.name), correct:false, linked:false
+  }, p, extra ? extra(p) : {}));
+  return own.concat(add).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+}
+function mergedDiagnoses(s){ return mergedList(s.diagnoses, COMMON.dx); }
+function mergedNoc(s){ return mergedList(s.noc, COMMON.noc); }
+function mergedNic(s){ return mergedList(s.nic, COMMON.nic); }
+
 const STEPS=[
   {k:"A", n:1, t:"사정", e:"Assessment", v:"--step-a"},
   {k:"D", n:2, t:"진단", e:"Diagnosis",  v:"--step-d"},
@@ -1444,7 +1556,7 @@ function renderDiagnosis(){
   const s=DATA[state.scenario];
   const sel=document.getElementById("dxSelect");
   sel.innerHTML = `<option value="">— 진단을 선택하세요 —</option>` +
-    s.diagnoses.map(d=>`<option value="${d.id}" ${state.dx===d.id?'selected':''}>${d.name}</option>`).join("");
+    mergedDiagnoses(s).map(d=>`<option value="${d.id}" ${state.dx===d.id?'selected':''}>${d.name}</option>`).join("");
   // PES 복원
   document.getElementById("pesP").value=state.pes.p;
   document.getElementById("pesE").value=state.pes.e;
@@ -1461,7 +1573,7 @@ function onDxChange(silent){
   const s=DATA[state.scenario];
   const id=document.getElementById("dxSelect").value;
   if(!silent){ state.dx=id; persist(); }
-  const dx=s.diagnoses.find(d=>d.id===id);
+  const dx=mergedDiagnoses(s).find(d=>d.id===id);
   document.getElementById("dxDefHint").innerHTML = dx? `<b>정의:</b> ${dx.def}` : "";
 
   if(!dx){ document.getElementById("dxFeedback").innerHTML=""; return; }
@@ -1504,7 +1616,7 @@ function renderPlanning(){
   const s=DATA[state.scenario];
   const sel=document.getElementById("nocSelect");
   sel.innerHTML = `<option value="">— NOC 결과를 선택하세요 —</option>` +
-    s.noc.map(n=>`<option value="${n.id}" ${state.noc===n.id?'selected':''}>${n.name}</option>`).join("");
+    mergedNoc(s).map(n=>`<option value="${n.id}" ${state.noc===n.id?'selected':''}>${n.name}</option>`).join("");
   document.getElementById("nocMeasure").value=state.measure||"";
   document.getElementById("nocMeasure").oninput=e=>{state.measure=e.target.value;persist();};
   onNocChange(true);
@@ -1517,7 +1629,7 @@ function onNocChange(silent){
     if(state.noc!==id){ state.noc=id; state.nocTargets={}; state.nocBase={}; state.evalVals={}; }
     persist();
   }
-  const noc=s.noc.find(n=>n.id===id);
+  const noc=mergedNoc(s).find(n=>n.id===id);
   const hint=document.getElementById("nocDefHint");
   const card=document.getElementById("nocIndicatorCard");
   if(!noc){ hint.innerHTML=""; card.style.display="none"; return; }
@@ -1562,7 +1674,7 @@ function setScale(indId,kind,v,evalMode){
    =========================================================================== */
 function renderImplementation(){
   const s=DATA[state.scenario];
-  document.getElementById("nicList").innerHTML = s.nic.map(n=>{
+  document.getElementById("nicList").innerHTML = mergedNic(s).map(n=>{
     const on=state.nics.includes(n.id);
     return `<label class="cue ${on?'picked':''}" style="cursor:pointer">
         <input type="checkbox" ${on?'checked':''} onchange="toggleNic('${n.id}')" style="accent-color:var(--step-i)"/>
@@ -1582,7 +1694,7 @@ function toggleNic(id){
 function renderNicFeedback(){
   const s=DATA[state.scenario];
   if(state.nics.length===0){ document.getElementById("nicFeedback").innerHTML=""; return; }
-  const chosen=s.nic.filter(n=>state.nics.includes(n.id));
+  const chosen=mergedNic(s).filter(n=>state.nics.includes(n.id));
   const good=chosen.filter(n=>n.linked);
   const bad =chosen.filter(n=>!n.linked);
   let cls = bad.length===0 ? "good":"warn";
@@ -1599,7 +1711,7 @@ function renderNicFeedback(){
    =========================================================================== */
 function renderEvaluation(){
   const s=DATA[state.scenario];
-  const noc=s.noc.find(n=>n.id===state.noc);
+  const noc=mergedNoc(s).find(n=>n.id===state.noc);
   const card=document.getElementById("evalCard");
   if(!noc){
     card.innerHTML=`<div class="feedback warn">먼저 <b>계획(P)</b> 단계에서 NOC 결과와 목표 척도를 설정하세요.</div>`;
@@ -1665,9 +1777,9 @@ function renderEvaluation(){
    =========================================================================== */
 function renderMap(){
   const s=DATA[state.scenario];
-  const dx=s.diagnoses.find(d=>d.id===state.dx);
-  const noc=s.noc.find(n=>n.id===state.noc);
-  const nics=s.nic.filter(n=>state.nics.includes(n.id));
+  const dx=mergedDiagnoses(s).find(d=>d.id===state.dx);
+  const noc=mergedNoc(s).find(n=>n.id===state.noc);
+  const nics=mergedNic(s).filter(n=>state.nics.includes(n.id));
   const cues=s.cues.filter(c=>state.pickedCues.includes(c.id));
 
   const svg=document.getElementById("nnnMap");
@@ -1749,7 +1861,7 @@ function renderMap(){
 
 function evalVerdictText(){
   const s=DATA[state.scenario];
-  const noc=s.noc.find(n=>n.id===state.noc);
+  const noc=mergedNoc(s).find(n=>n.id===state.noc);
   if(!noc) return "평가 미완료";
   const ind=noc.indicators;
   if(!ind.every(i=>state.evalVals[i.id])) return "재측정 미입력";
@@ -1779,10 +1891,10 @@ function loadWork(){
 
 function saveProcess(){
   const s=DATA[state.scenario];
-  const dx=s.diagnoses.find(d=>d.id===state.dx);
+  const dx=mergedDiagnoses(s).find(d=>d.id===state.dx);
   if(!dx){ alert("진단을 먼저 선택하세요."); return; }
-  const noc=s.noc.find(n=>n.id===state.noc);
-  const nics=s.nic.filter(n=>state.nics.includes(n.id));
+  const noc=mergedNoc(s).find(n=>n.id===state.noc);
+  const nics=mergedNic(s).filter(n=>state.nics.includes(n.id));
   const rec={
     ts:new Date().toISOString(),
     scenario:state.scenario,
