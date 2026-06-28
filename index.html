@@ -713,6 +713,580 @@ const DATA = {
       {id:"nicC5", name:"기도 흡인 (Airway Suctioning)", linked:false,
         def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
     ]
+  },
+
+  /* --------------------------- 가상환자 D : 내분비 / 고혈당 --------------------------- */
+  D:{
+    id:"D", name:"가상환자 D", tag:"내분비(당뇨)",
+    blurb:"58세 제2형 당뇨. 다음·다뇨와 전신 쇠약 호소, 혈당 조절이 되지 않음.",
+    cues:[
+      {id:"d1", text:"\"갈증이 심하고 소변을 자주 봐요\"", so:"S", significant:true},
+      {id:"d2", text:"공복혈당(FBS)", val:"320 mg/dL", so:"O", significant:true},
+      {id:"d3", text:"당화혈색소(HbA1c)", val:"9.8%", so:"O", significant:true},
+      {id:"d4", text:"\"기운이 없고 어지러워요\"", so:"S", significant:true},
+      {id:"d5", text:"소변 케톤", val:"양성(+)", so:"O", significant:true},
+      {id:"d6", text:"체중", val:"최근 한 달 4kg 감소", so:"O", significant:true},
+      {id:"d7", text:"혈압", val:"122/76 mmHg", so:"O", significant:false},
+      {id:"d8", text:"\"단 음식을 평소 좋아해요\"", so:"S", significant:false},
+      {id:"d9", text:"체온", val:"36.8℃", so:"O", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxD1", name:"비효과적 건강 자기관리", correct:true,
+        def:"질병의 치료와 후유증 관리를 위한 요법을 일상에 통합하지 못하는 상태",
+        dcCues:["d1","d2","d3","d4","d5","d6"],
+        etiology:"질병 과정·식이/투약 요법에 대한 지식 부족",
+        signs:"고혈당(320), HbA1c 9.8%, 다음·다뇨, 케톤뇨, 체중감소"},
+      {id:"dxD2", name:"체액 부족", correct:false,
+        def:"혈관내·세포내 수분 감소 (다뇨로 동반 가능하나 주 문제는 자기관리)"},
+      {id:"dxD3", name:"피로", correct:false,
+        def:"압도적인 소진감 (증상일 뿐 우선순위 진단 아님)"},
+      {id:"dxD4", name:"불안", correct:false,
+        def:"막연한 위협감에 대한 불편감 (이 단서와 불일치)"},
+      {id:"dxD5", name:"비효과적 기도청결", correct:false,
+        def:"기도 분비물 제거 곤란 (이 시나리오 단서와 불일치)"},
+      {id:"dxD6", name:"급성 통증", correct:false,
+        def:"조직손상 관련 불쾌한 감각 (이 시나리오 단서와 불일치)"}
+    ],
+    correctDx:"dxD1",
+    noc:[
+      {id:"nocD1", name:"혈당 수준 (Blood Glucose Level)", linked:true,
+        def:"혈장 내 포도당이 정상 범위로 유지되는 정도",
+        indicators:[
+          {id:"i1", label:"공복혈당 정상범위", base:2},
+          {id:"i2", label:"당화혈색소 목표 범위", base:2}
+        ]},
+      {id:"nocD2", name:"당뇨병 자기관리 (Diabetes Self-Management)", linked:true,
+        def:"당뇨와 합병증 예방을 위한 개인의 관리 행동",
+        indicators:[
+          {id:"i1", label:"처방 식이 준수", base:1},
+          {id:"i2", label:"혈당 자가측정 수행", base:2},
+          {id:"i3", label:"투약 요법 준수", base:2}
+        ]},
+      {id:"nocD3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"보고된 통증", base:4}]}
+    ],
+    nic:[
+      {id:"nicD1", name:"고혈당 관리 (Hyperglycemia Management)", linked:true,
+        def:"고혈당의 예방·치료 및 합병증 예방"},
+      {id:"nicD2", name:"교육: 처방된 식이 (Teaching: Prescribed Diet)", linked:true,
+        def:"처방 식이의 준수를 돕는 교육"},
+      {id:"nicD3", name:"투약 관리 (Medication Management)", linked:true,
+        def:"안전하고 효과적인 약물 사용 촉진"},
+      {id:"nicD4", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicD5", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 E : 순환기 / 체액과다 --------------------------- */
+  E:{
+    id:"E", name:"가상환자 E", tag:"순환기(심부전)",
+    blurb:"72세 만성 심부전 악화. 호흡곤란과 하지 부종, 단기간 체중 증가.",
+    cues:[
+      {id:"e1", text:"\"숨이 차고 다리가 부었어요\"", so:"S", significant:true},
+      {id:"e2", text:"하지 부종", val:"함요부종 2+", so:"O", significant:true},
+      {id:"e3", text:"체중", val:"3일간 +2.5 kg", so:"O", significant:true},
+      {id:"e4", text:"폐 청진", val:"양측 수포음(crackle)", so:"O", significant:true},
+      {id:"e5", text:"경정맥", val:"경정맥 확장(JVD)", so:"O", significant:true},
+      {id:"e6", text:"섭취/배설(I&O)", val:"섭취 > 배설(양성 균형)", so:"O", significant:true},
+      {id:"e7", text:"\"누우면 더 숨차서 앉아 있어요\"", so:"S", significant:true},
+      {id:"e8", text:"혈당", val:"104 mg/dL", so:"O", significant:false},
+      {id:"e9", text:"\"입맛은 괜찮아요\"", so:"S", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxE1", name:"체액 과다", correct:true,
+        def:"수분의 정체로 등장성 체액이 증가된 상태",
+        dcCues:["e1","e2","e3","e4","e5","e6","e7"],
+        etiology:"조절기전 손상(심박출량 감소)",
+        signs:"하지 부종, 체중 증가, 수포음, 경정맥 확장, 양성 I&O"},
+      {id:"dxE2", name:"체액 부족", correct:false,
+        def:"혈관내 수분 감소 (단서와 정반대 — 대표적 오답)"},
+      {id:"dxE3", name:"가스교환 장애", correct:false,
+        def:"폐포-모세혈관 교환 장애 (동반 가능하나 주 문제는 체액과다)"},
+      {id:"dxE4", name:"활동 지속성 장애", correct:false,
+        def:"필요한 활동을 견디지 못함 (이차적 문제)"},
+      {id:"dxE5", name:"비효과적 기도청결", correct:false,
+        def:"기도 분비물 제거 곤란 (수포음 원인이 분비물 아님)"},
+      {id:"dxE6", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (이 시나리오 단서와 불일치)"}
+    ],
+    correctDx:"dxE1",
+    noc:[
+      {id:"nocE1", name:"체액 균형 (Fluid Balance)", linked:true,
+        def:"체내 수분의 균형 상태",
+        indicators:[
+          {id:"i1", label:"말초 부종 없음", base:2},
+          {id:"i2", label:"안정된 체중 유지", base:2},
+          {id:"i3", label:"섭취·배설 균형", base:2}
+        ]},
+      {id:"nocE2", name:"호흡 상태 (Respiratory Status)", linked:true,
+        def:"기도 개방과 가스교환의 적절성",
+        indicators:[
+          {id:"i1", label:"호흡곤란 없음", base:2},
+          {id:"i2", label:"부적절한 호흡음 없음", base:2}
+        ]},
+      {id:"nocE3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"보고된 통증", base:4}]}
+    ],
+    nic:[
+      {id:"nicE1", name:"체액 관리 (Fluid Management)", linked:true,
+        def:"체액 균형 증진 및 비정상 수분 정체 예방"},
+      {id:"nicE2", name:"체액 감시 (Fluid Monitoring)", linked:true,
+        def:"수분 균형 조절·합병증 예방을 위한 자료 수집·분석"},
+      {id:"nicE3", name:"약물 관리 (Medication Management)", linked:true,
+        def:"이뇨제 등 처방 약물의 안전·효과적 사용"},
+      {id:"nicE4", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicE5", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 F : 피부 / 욕창 --------------------------- */
+  F:{
+    id:"F", name:"가상환자 F", tag:"피부(욕창)",
+    blurb:"80세 장기 침상안정. 천골부 피부 손상과 실금, 영양불량 동반.",
+    cues:[
+      {id:"f1", text:"천골부 피부", val:"발적·표피 손상(2단계)", so:"O", significant:true},
+      {id:"f2", text:"활동", val:"장기간 침상안정(부동)", so:"O", significant:true},
+      {id:"f3", text:"Braden 척도", val:"13점(고위험)", so:"O", significant:true},
+      {id:"f4", text:"배설", val:"요·변 실금(습기 노출)", so:"O", significant:true},
+      {id:"f5", text:"혈청 알부민", val:"2.8 g/dL(영양불량)", so:"O", significant:true},
+      {id:"f6", text:"\"엉치가 따갑고 쓰려요\"", so:"S", significant:true},
+      {id:"f7", text:"의식", val:"명료, 의사소통 가능", so:"O", significant:false},
+      {id:"f8", text:"혈압", val:"118/72 mmHg", so:"O", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxF1", name:"피부 통합성 장애", correct:true,
+        def:"표피와 진피가 손상된 상태",
+        dcCues:["f1","f2","f3","f4","f5","f6"],
+        etiology:"압력·습기(실금)·부동·영양불량",
+        signs:"천골부 표피 손상, 발적, 통증 호소"},
+      {id:"dxF2", name:"신체 기동성 장애", correct:false,
+        def:"독립적 움직임의 제한 (피부손상의 관련요인이나 주 문제 아님)"},
+      {id:"dxF3", name:"감염 위험성", correct:false,
+        def:"병원체 침입에 취약 (잠재적 합병증, 현 핵심은 통합성 손상)"},
+      {id:"dxF4", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (증상일 뿐 우선순위 아님)"},
+      {id:"dxF5", name:"영양불균형: 신체요구량보다 적음", correct:false,
+        def:"섭취 부족 (관련요인일 수 있으나 주 문제는 피부)"},
+      {id:"dxF6", name:"낙상 위험성", correct:false,
+        def:"낙상 취약 상태 (이 시나리오 단서와 불일치)"}
+    ],
+    correctDx:"dxF1",
+    noc:[
+      {id:"nocF1", name:"조직 통합성: 피부·점막 (Tissue Integrity)", linked:true,
+        def:"피부·점막의 구조와 기능이 정상인 정도",
+        indicators:[
+          {id:"i1", label:"피부 병변 없음", base:2},
+          {id:"i2", label:"홍반/발적 없음", base:2}
+        ]},
+      {id:"nocF2", name:"상처 치유: 2차 유합 (Wound Healing)", linked:true,
+        def:"개방 상처의 세포·조직 재생 정도",
+        indicators:[
+          {id:"i1", label:"육아조직 형성", base:2},
+          {id:"i2", label:"상처 크기 감소", base:1}
+        ]},
+      {id:"nocF3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (보조 지표 — 주 결과 아님)",
+        indicators:[{id:"i1", label:"보고된 통증", base:3}]}
+    ],
+    nic:[
+      {id:"nicF1", name:"욕창 예방 (Pressure Ulcer Prevention)", linked:true,
+        def:"압력 손상 발생 위험 최소화(체위변경 등)"},
+      {id:"nicF2", name:"상처 간호 (Wound Care)", linked:true,
+        def:"상처 치유 촉진 및 합병증 예방"},
+      {id:"nicF3", name:"피부 감시 (Skin Surveillance)", linked:true,
+        def:"피부·점막 통합성 유지를 위한 자료 수집·분석"},
+      {id:"nicF4", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicF5", name:"진통제 투여 (Analgesic Administration)", linked:false,
+        def:"통증 약물 (보조적, 주 중재 아님 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 G : 신경계 / 연하곤란 --------------------------- */
+  G:{
+    id:"G", name:"가상환자 G", tag:"신경계(뇌졸중)",
+    blurb:"69세 뇌경색 후 연하곤란. 식사 중 자주 사레들리고 의식이 기면 상태.",
+    cues:[
+      {id:"g1", text:"연하", val:"삼킴 시 잦은 사레·기침", so:"O", significant:true},
+      {id:"g2", text:"안면", val:"안면 비대칭·구음장애", so:"O", significant:true},
+      {id:"g3", text:"의식수준", val:"기면(drowsy)", so:"O", significant:true},
+      {id:"g4", text:"기침반사", val:"감소", so:"O", significant:true},
+      {id:"g5", text:"영양", val:"비위관 영양 진행 중", so:"O", significant:true},
+      {id:"g6", text:"\"삼킬 때 목에 걸리는 느낌이 들어요\"", so:"S", significant:true},
+      {id:"g7", text:"혈압", val:"150/90 mmHg", so:"O", significant:false},
+      {id:"g8", text:"체온", val:"36.9℃", so:"O", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxG1", name:"흡인 위험성", correct:true,
+        def:"분비물·음식물 등이 기관지로 들어갈 위험이 있는 취약 상태",
+        dcCues:["g1","g3","g4","g6"],
+        etiology:"연하장애, 의식수준 저하, 기침반사 감소, 관영양",
+        signs:"(위험진단은 증상이 아닌 '위험요인'으로 기술)"},
+      {id:"dxG2", name:"비효과적 기도청결", correct:false,
+        def:"기도 분비물 제거 곤란 (현재 핵심은 흡인 '예방')"},
+      {id:"dxG3", name:"언어적 의사소통 장애", correct:false,
+        def:"언어 표현·이해의 제한 (동반되나 안전 우선순위 아님)"},
+      {id:"dxG4", name:"영양불균형: 신체요구량보다 적음", correct:false,
+        def:"섭취 부족 (가능하나 현 핵심은 흡인 위험)"},
+      {id:"dxG5", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (이 시나리오 단서와 불일치)"},
+      {id:"dxG6", name:"신체 기동성 장애", correct:false,
+        def:"움직임 제한 (이 시나리오 핵심 단서와 불일치)"}
+    ],
+    correctDx:"dxG1",
+    noc:[
+      {id:"nocG1", name:"흡인 예방 (Aspiration Prevention)", linked:true,
+        def:"기도로의 액체·고형물 통과를 예방하는 개인의 행동",
+        indicators:[
+          {id:"i1", label:"올바른 자세로 식이 섭취", base:2},
+          {id:"i2", label:"분비물 효과적 처리", base:2}
+        ]},
+      {id:"nocG2", name:"연하 상태 (Swallowing Status)", linked:true,
+        def:"구강·인두를 통한 액체·고형물의 안전한 통과 정도",
+        indicators:[
+          {id:"i1", label:"사레 없이 삼킴", base:1},
+          {id:"i2", label:"구강 내 잔류물 없음", base:2}
+        ]},
+      {id:"nocG3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"보고된 통증", base:4}]}
+    ],
+    nic:[
+      {id:"nicG1", name:"흡인 예방 (Aspiration Precautions)", linked:true,
+        def:"흡인 위험요인이 있는 대상자의 흡인 예방"},
+      {id:"nicG2", name:"연하 요법 (Swallowing Therapy)", linked:true,
+        def:"삼킴 기능 향상·안전한 섭취를 위한 중재"},
+      {id:"nicG3", name:"기도 관리 (Airway Management)", linked:true,
+        def:"기도 개방성 유지 촉진"},
+      {id:"nicG4", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicG5", name:"진통제 투여 (Analgesic Administration)", linked:false,
+        def:"통증 약물 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 H : 정신건강 / 불안 --------------------------- */
+  H:{
+    id:"H", name:"가상환자 H", tag:"정신건강(불안)",
+    blurb:"50세, 큰 수술을 앞두고 불안 호소. 안절부절·불면·심계항진이 동반됨.",
+    cues:[
+      {id:"h1", text:"\"수술 결과가 두렵고 잠이 안 와요\"", so:"S", significant:true},
+      {id:"h2", text:"행동", val:"안절부절못함, 손 떨림", so:"O", significant:true},
+      {id:"h3", text:"맥박(HR)", val:"98회/분", so:"O", significant:true},
+      {id:"h4", text:"\"가슴이 답답하고 집중이 안 돼요\"", so:"S", significant:true},
+      {id:"h5", text:"호흡수(RR)", val:"22회/분", so:"O", significant:true},
+      {id:"h6", text:"피부", val:"발한(축축함)", so:"O", significant:true},
+      {id:"h7", text:"혈당", val:"99 mg/dL", so:"O", significant:false},
+      {id:"h8", text:"\"가족이 곁을 지켜줘요\"", so:"S", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxH1", name:"불안", correct:true,
+        def:"불특정·모호한 위협에 대한 막연한 불편감과 자율신경 반응",
+        dcCues:["h1","h2","h3","h4","h5","h6"],
+        etiology:"상황적 위기(수술), 미래 결과에 대한 불확실성",
+        signs:"안절부절, 빈맥, 빈호흡, 발한, 수면곤란, 집중곤란"},
+      {id:"dxH2", name:"공포(두려움)", correct:false,
+        def:"식별 가능한 '구체적' 대상에 대한 반응 (모호한 위협의 불안과 구별 — 대표적 오답)"},
+      {id:"dxH3", name:"비효과적 대처", correct:false,
+        def:"스트레스 대처자원의 부적절 (동반 가능하나 현 핵심은 불안)"},
+      {id:"dxH4", name:"수면 양상 장애", correct:false,
+        def:"수면의 질·양 저하 (불안의 증상일 뿐 우선순위 아님)"},
+      {id:"dxH5", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (이 시나리오 단서와 불일치)"},
+      {id:"dxH6", name:"지식 부족", correct:false,
+        def:"특정 주제 정보의 결여 (단서가 주로 정서·생리 반응)"}
+    ],
+    correctDx:"dxH1",
+    noc:[
+      {id:"nocH1", name:"불안 수준 (Anxiety Level)", linked:true,
+        def:"불특정 원천의 긴장·불안의 심각도",
+        indicators:[
+          {id:"i1", label:"안절부절못함 감소", base:2},
+          {id:"i2", label:"심혈관 반응(빈맥) 완화", base:2},
+          {id:"i3", label:"보고된 불안 감소", base:1}
+        ]},
+      {id:"nocH2", name:"대처 (Coping)", linked:true,
+        def:"스트레스원을 관리하는 개인의 행동",
+        indicators:[
+          {id:"i1", label:"효과적 대처 전략 사용", base:2},
+          {id:"i2", label:"긴장 완화 방법 적용", base:1}
+        ]},
+      {id:"nocH3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"보고된 통증", base:4}]}
+    ],
+    nic:[
+      {id:"nicH1", name:"불안 감소 (Anxiety Reduction)", linked:true,
+        def:"막연한 위협·불편을 느끼는 대상자의 불안 완화"},
+      {id:"nicH2", name:"정서적 지지 (Emotional Support)", linked:true,
+        def:"스트레스 상황에서 안심·수용 제공"},
+      {id:"nicH3", name:"이완 요법 (Calming Technique)", linked:true,
+        def:"고통받는 대상자의 급성 불안 완화"},
+      {id:"nicH4", name:"진통제 투여 (Analgesic Administration)", linked:false,
+        def:"통증 약물 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicH5", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 I : 영양 / 영양부족 --------------------------- */
+  I:{
+    id:"I", name:"가상환자 I", tag:"영양(영양부족)",
+    blurb:"66세, 식욕부진으로 섭취 저하. 단기간 체중감소와 쇠약, 저알부민혈증.",
+    cues:[
+      {id:"n1", text:"체중", val:"한 달간 6kg 감소", so:"O", significant:true},
+      {id:"n2", text:"체질량지수(BMI)", val:"17.2", so:"O", significant:true},
+      {id:"n3", text:"\"입맛이 없고 먹기가 힘들어요\"", so:"S", significant:true},
+      {id:"n4", text:"혈청 알부민", val:"2.9 g/dL", so:"O", significant:true},
+      {id:"n5", text:"식사량", val:"제공량의 1/3 이하 섭취", so:"O", significant:true},
+      {id:"n6", text:"근육", val:"근육 소모·전신 쇠약", so:"O", significant:true},
+      {id:"n7", text:"혈압", val:"110/70 mmHg", so:"O", significant:false},
+      {id:"n8", text:"\"물은 잘 마셔요\"", so:"S", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxI1", name:"영양불균형: 신체요구량보다 적음", correct:true,
+        def:"대사 요구를 충족하기에 영양 섭취가 부족한 상태",
+        dcCues:["n1","n2","n3","n4","n5","n6"],
+        etiology:"식욕부진·섭취 곤란으로 인한 섭취 부족",
+        signs:"체중감소, BMI 17.2, 저알부민(2.9), 섭취량 부족, 근육 소모"},
+      {id:"dxI2", name:"영양불균형: 신체요구량보다 많음", correct:false,
+        def:"요구량 초과 섭취 (단서와 정반대 — 대표적 오답)"},
+      {id:"dxI3", name:"연하장애", correct:false,
+        def:"삼킴 기능 이상 (관련요인일 수 있으나 단서가 불충분)"},
+      {id:"dxI4", name:"피로", correct:false,
+        def:"압도적 소진감 (이차적 증상)"},
+      {id:"dxI5", name:"체액 부족", correct:false,
+        def:"혈관내 수분 감소 (수분 섭취는 양호 — 불일치)"},
+      {id:"dxI6", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (이 시나리오 단서와 불일치)"}
+    ],
+    correctDx:"dxI1",
+    noc:[
+      {id:"nocI1", name:"영양 상태 (Nutritional Status)", linked:true,
+        def:"영양소가 대사 요구를 충족하는 정도",
+        indicators:[
+          {id:"i1", label:"체중/BMI 회복", base:2},
+          {id:"i2", label:"혈청 알부민 정상화", base:2}
+        ]},
+      {id:"nocI2", name:"영양 상태: 음식·수분 섭취", linked:true,
+        def:"섭취된 음식과 수분의 양",
+        indicators:[
+          {id:"i1", label:"경구 음식 섭취량", base:1},
+          {id:"i2", label:"식욕 개선", base:2}
+        ]},
+      {id:"nocI3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (이 진단과 연계 약함 — 오답 후보)",
+        indicators:[{id:"i1", label:"보고된 통증", base:4}]}
+    ],
+    nic:[
+      {id:"nicI1", name:"영양 관리 (Nutrition Management)", linked:true,
+        def:"균형 잡힌 영양 섭취를 돕고 촉진"},
+      {id:"nicI2", name:"영양 감시 (Nutritional Monitoring)", linked:true,
+        def:"영양 상태 자료의 수집·분석"},
+      {id:"nicI3", name:"영양 상담 (Nutritional Counseling)", linked:true,
+        def:"영양 요구 변화에 대한 상호작용적 상담"},
+      {id:"nicI4", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicI5", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 J : 면역 / 수술후 감염위험 --------------------------- */
+  J:{
+    id:"J", name:"가상환자 J", tag:"감염위험(수술후)",
+    blurb:"75세, 복부 수술 후. 침습적 기구 보유와 고혈당·영양불량으로 감염 위험 높음.",
+    cues:[
+      {id:"j1", text:"수술 절개", val:"복부 수술 절개 부위 보유", so:"O", significant:true},
+      {id:"j2", text:"침습적 기구", val:"유치도뇨관·중심정맥관 보유", so:"O", significant:true},
+      {id:"j3", text:"혈당", val:"210 mg/dL(고혈당)", so:"O", significant:true},
+      {id:"j4", text:"혈청 알부민", val:"2.9 g/dL(영양불량)", so:"O", significant:true},
+      {id:"j5", text:"연령", val:"75세(고령)", so:"O", significant:true},
+      {id:"j6", text:"\"상처 소독은 언제 하나요?\"", so:"S", significant:false},
+      {id:"j7", text:"체온", val:"37.0℃", so:"O", significant:false},
+      {id:"j8", text:"혈압", val:"124/78 mmHg", so:"O", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxJ1", name:"감염 위험성", correct:true,
+        def:"병원체의 침입·증식으로 건강을 위협받기 쉬운 취약 상태",
+        dcCues:["j1","j2","j3","j4","j5"],
+        etiology:"침습적 처치(수술·기구), 고혈당, 영양불량, 고령",
+        signs:"(위험진단은 증상이 아닌 '위험요인'으로 기술)"},
+      {id:"dxJ2", name:"고체온", correct:false,
+        def:"심부체온 상승 (현재 발열은 없음 — 위험 단계)"},
+      {id:"dxJ3", name:"피부 통합성 장애", correct:false,
+        def:"표피·진피 손상 (수술 절개는 '의도적' 손상 — 핵심은 감염예방)"},
+      {id:"dxJ4", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (수술 후 동반 가능하나 현 핵심 아님)"},
+      {id:"dxJ5", name:"지식 부족", correct:false,
+        def:"정보 결여 (단서가 주로 생리적 위험요인)"},
+      {id:"dxJ6", name:"체액 부족", correct:false,
+        def:"혈관내 수분 감소 (이 시나리오 단서와 불일치)"}
+    ],
+    correctDx:"dxJ1",
+    noc:[
+      {id:"nocJ1", name:"위험 통제: 감염 과정 (Risk Control: Infectious Process)", linked:true,
+        def:"감염 위협을 이해·예방·제거하는 개인의 행동",
+        indicators:[
+          {id:"i1", label:"감염 위험요인 인지·관리", base:2},
+          {id:"i2", label:"손위생 등 예방행위 실천", base:2}
+        ]},
+      {id:"nocJ2", name:"상처 치유: 1차 유합 (Wound Healing)", linked:true,
+        def:"봉합 상처 가장자리의 재생 정도",
+        indicators:[
+          {id:"i1", label:"절개 부위 발적/삼출 없음", base:3},
+          {id:"i2", label:"절개부 접합 양호", base:3}
+        ]},
+      {id:"nocJ3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (보조 지표 — 주 결과 아님)",
+        indicators:[{id:"i1", label:"보고된 통증", base:3}]}
+    ],
+    nic:[
+      {id:"nicJ1", name:"감염 예방 (Infection Protection)", linked:true,
+        def:"감염 위험이 있는 대상자의 감염 예방·조기발견"},
+      {id:"nicJ2", name:"감염 통제 (Infection Control)", linked:true,
+        def:"감염원 전파의 최소화"},
+      {id:"nicJ3", name:"절개 부위 간호 (Incision Site Care)", linked:true,
+        def:"봉합·스테이플 절개부의 청결·치유 촉진"},
+      {id:"nicJ4", name:"진통제 투여 (Analgesic Administration)", linked:false,
+        def:"통증 약물 (보조적, 주 중재 아님 — 오답 후보)"},
+      {id:"nicJ5", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 K : 배설 / 변비 --------------------------- */
+  K:{
+    id:"K", name:"가상환자 K", tag:"배설(변비)",
+    blurb:"62세, 수술 후 마약성 진통제 사용 중. 4일째 배변이 없고 복부 팽만 호소.",
+    cues:[
+      {id:"k1", text:"\"4일째 변을 못 봤어요\"", so:"S", significant:true},
+      {id:"k2", text:"복부", val:"팽만·단단함, 촉진 시 불편", so:"O", significant:true},
+      {id:"k3", text:"장음", val:"감소(저활동성)", so:"O", significant:true},
+      {id:"k4", text:"투약", val:"마약성 진통제 복용 중", so:"O", significant:true},
+      {id:"k5", text:"활동", val:"수술 후 침상안정(부동)", so:"O", significant:true},
+      {id:"k6", text:"섭취", val:"수분·섬유질 섭취 부족", so:"O", significant:true},
+      {id:"k7", text:"\"배가 더부룩하고 묵직해요\"", so:"S", significant:true},
+      {id:"k8", text:"혈압", val:"126/80 mmHg", so:"O", significant:false},
+      {id:"k9", text:"\"소변은 잘 봐요\"", so:"S", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxK1", name:"변비", correct:true,
+        def:"배변 횟수 감소와 함께 단단하고 건조한 변의 배출 곤란",
+        dcCues:["k1","k2","k3","k7"],
+        etiology:"부동, 마약성 진통제, 수분·섬유 섭취 부족",
+        signs:"4일간 배변 없음, 복부 팽만, 장음 감소, 더부룩함"},
+      {id:"dxK2", name:"설사", correct:false,
+        def:"묽고 잦은 변 배출 (단서와 정반대 — 대표적 오답)"},
+      {id:"dxK3", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (복부 불편은 변비의 증상)"},
+      {id:"dxK4", name:"신체 기동성 장애", correct:false,
+        def:"움직임 제한 (관련요인이나 주 문제는 배설)"},
+      {id:"dxK5", name:"체액 부족", correct:false,
+        def:"수분 감소 (요인 가능하나 핵심 단서는 배변 곤란)"},
+      {id:"dxK6", name:"영양불균형: 신체요구량보다 적음", correct:false,
+        def:"섭취 부족 (이 시나리오 핵심과 불일치)"}
+    ],
+    correctDx:"dxK1",
+    noc:[
+      {id:"nocK1", name:"배변 양상 (Bowel Elimination)", linked:true,
+        def:"대변의 형성과 배출이 정상인 정도",
+        indicators:[
+          {id:"i1", label:"규칙적 배변 양상", base:1},
+          {id:"i2", label:"편안한 변 배출", base:2}
+        ]},
+      {id:"nocK2", name:"위장관 기능 (Gastrointestinal Function)", linked:true,
+        def:"위장관의 정상적 기능 정도",
+        indicators:[
+          {id:"i1", label:"장음 정상", base:2},
+          {id:"i2", label:"복부 팽만 없음", base:2}
+        ]},
+      {id:"nocK3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (보조 지표 — 주 결과 아님)",
+        indicators:[{id:"i1", label:"보고된 통증", base:3}]}
+    ],
+    nic:[
+      {id:"nicK1", name:"변비/분변 매복 관리 (Constipation Management)", linked:true,
+        def:"변비·분변 매복의 예방·완화"},
+      {id:"nicK2", name:"장 관리 (Bowel Management)", linked:true,
+        def:"규칙적 배변 양상 확립·유지"},
+      {id:"nicK3", name:"운동 증진 (Exercise Promotion)", linked:true,
+        def:"신체활동 증진으로 장운동 촉진"},
+      {id:"nicK4", name:"진통제 투여 (Analgesic Administration)", linked:false,
+        def:"통증 약물 (오히려 변비 유발 — 주 중재 아님, 오답 후보)"},
+      {id:"nicK5", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
+  },
+
+  /* --------------------------- 가상환자 L : 휴식·수면 / 수면장애 --------------------------- */
+  L:{
+    id:"L", name:"가상환자 L", tag:"수면(수면장애)",
+    blurb:"55세 입원 환자. 병원 환경과 야간 통증으로 자주 깨고 수면이 부족함.",
+    cues:[
+      {id:"l1", text:"\"밤에 자주 깨고 4시간밖에 못 자요\"", so:"S", significant:true},
+      {id:"l2", text:"외모", val:"다크서클·주간 졸음", so:"O", significant:true},
+      {id:"l3", text:"환경", val:"병실 소음·야간 처치 잦음", so:"O", significant:true},
+      {id:"l4", text:"습관", val:"저녁 카페인 섭취", so:"O", significant:true},
+      {id:"l5", text:"\"낮에 피곤하고 집중이 안 돼요\"", so:"S", significant:true},
+      {id:"l6", text:"통증", val:"야간 통증으로 각성 반복", so:"O", significant:true},
+      {id:"l7", text:"혈압", val:"120/78 mmHg", so:"O", significant:false},
+      {id:"l8", text:"\"식사는 잘 합니다\"", so:"S", significant:false}
+    ],
+    diagnoses:[
+      {id:"dxL1", name:"수면 양상 장애", correct:true,
+        def:"외부 요인에 의한 시간 제한적 수면의 질·양 저하",
+        dcCues:["l1","l2","l3","l5","l6"],
+        etiology:"환경 방해(소음·야간 처치), 카페인, 야간 통증",
+        signs:"야간 각성 반복, 수면시간 감소, 주간 졸음·집중곤란"},
+      {id:"dxL2", name:"피로", correct:false,
+        def:"압도적 소진감 (수면부족의 결과적 증상 — 대표적 오답)"},
+      {id:"dxL3", name:"급성 통증", correct:false,
+        def:"조직손상 관련 감각 (관련요인이나 주 문제는 수면)"},
+      {id:"dxL4", name:"불안", correct:false,
+        def:"막연한 위협감 (동반 가능하나 단서가 환경 중심)"},
+      {id:"dxL5", name:"활동 지속성 장애", correct:false,
+        def:"활동 내구성 저하 (이차적 문제)"},
+      {id:"dxL6", name:"비효과적 대처", correct:false,
+        def:"대처자원 부적절 (이 시나리오 핵심과 불일치)"}
+    ],
+    correctDx:"dxL1",
+    noc:[
+      {id:"nocL1", name:"수면 (Sleep)", linked:true,
+        def:"신체·정신 회복을 위한 자연적·주기적 의식 정지의 양과 질",
+        indicators:[
+          {id:"i1", label:"수면 시간 적정", base:2},
+          {id:"i2", label:"중간에 깨지 않음", base:1},
+          {id:"i3", label:"수면의 질 만족", base:2}
+        ]},
+      {id:"nocL2", name:"휴식 (Rest)", linked:true,
+        def:"정신적·신체적 활력을 위한 휴식의 양과 질",
+        indicators:[
+          {id:"i1", label:"충분히 쉰 느낌", base:2},
+          {id:"i2", label:"주간 졸음 감소", base:2}
+        ]},
+      {id:"nocL3", name:"통증 수준 (Pain Level)", linked:false,
+        def:"통증 심각도 (관련 보조 지표 — 주 결과 아님)",
+        indicators:[{id:"i1", label:"야간 통증 감소", base:2}]}
+    ],
+    nic:[
+      {id:"nicL1", name:"수면 증진 (Sleep Enhancement)", linked:true,
+        def:"규칙적 수면·각성 주기 촉진"},
+      {id:"nicL2", name:"환경 관리: 안위 (Environmental Management: Comfort)", linked:true,
+        def:"안위를 위한 환경(소음·조명 등) 조작"},
+      {id:"nicL3", name:"이완 요법 (Calming Technique)", linked:true,
+        def:"긴장 완화로 수면 유도 보조"},
+      {id:"nicL4", name:"낙상 예방 (Fall Prevention)", linked:false,
+        def:"낙상 위험요인 최소화 (이 진단과 연계 약함 — 오답 후보)"},
+      {id:"nicL5", name:"기도 흡인 (Airway Suctioning)", linked:false,
+        def:"분비물 제거 (이 진단과 연계 약함 — 오답 후보)"}
+    ]
   }
 };
 
@@ -783,7 +1357,7 @@ function go(k){
    15. 단계 A — 시나리오 선택 + 단서 렌더
    =========================================================================== */
 function renderScenarioPick(){
-  document.getElementById("scnPick").innerHTML = ["A","B","C"].map(k=>{
+  document.getElementById("scnPick").innerHTML = Object.keys(DATA).map(k=>{
     const s=DATA[k];
     return `<button class="scn-card ${state.scenario===k?'active':''}" onclick="selectScenario('${k}')">
         <span class="tag">${s.tag}</span>
