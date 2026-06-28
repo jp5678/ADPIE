@@ -6,6 +6,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
+      - index          # 이 저장소의 기본 브랜치
       - main
       - master
       - claude/nursing-adpie-nnn-tool-t2va6v
